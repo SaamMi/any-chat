@@ -1,0 +1,52 @@
+{
+  "name": "saammi/any-chat",
+  "description": "A no-auth livewire stateless chat-widget",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Satyakaam Mishra",
+      "email": "satyakaam09@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "SaamMi\\AnyChat\\": "src"
+    }
+  },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/",
+            "SaamMi\\AnyChat\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "SaamMi\\AnyChat\\Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "SaamMi\\AnyChat\\Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+  "require-dev": {
+    "orchestra/testbench": "^10.0",
+    "pestphp/pest": "^4.4",
+    "orchestra/testbench-dusk": "^10.9",
+      "laravel/pint": "^1.13"
+  },
+  "extra": {
+        "laravel": {
+            "providers": [
+                "SaamMi\\AnyChat\\AnyChatServiceProvider"
+            ]
+        }
+    },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+        "php": "^8.2",
+        "livewire/livewire": "^3.0|^4.0",
+        "laravel/framework": "^12.0"
+    },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "php-http/discovery": true
+    }
+  }
+}
