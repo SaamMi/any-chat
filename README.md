@@ -26,7 +26,7 @@
 You can install the package via composer:
 
 ```bash
-composer require saammi/any-chat
+composer require SaamMi/anychat
 
 🛠 Usage
 Simply place the Livewire component in your Blade layout (usually before the closing </body> tag):
