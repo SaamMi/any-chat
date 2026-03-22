@@ -34,7 +34,7 @@ Simply place the Livewire component in your Blade layout (usually before the clo
 
 <livewire:anychat-widget />
 and <livewire:anychat-dashboard />  on any other component.
- Setup reverb or pusher and start chatting.
+ Setup reverb or pusher and you are good to go.
 
 
 Currently only the userside chat can be customized.
@@ -54,28 +54,17 @@ You can customize the widget's appearance using props:
 />
 
 
-
-
-
-
-
-🏗 Development & Testing
-This package uses Laravel Pint to maintain high code quality standards.
-
-To run Pint locally:
-
-Bash
-
-./vendor/bin/pint
-
 🗺 Roadmap (Beta)
 [ ] File upload support in chat.
 
-[ ] Sound notifications for new messages.
+[ ] Notifications for new messages.
 
 [ ] Multi-agent support.
 
 [ ] Persistent history via optional database driver.
+
+[ ] Support for AI agents.
+
 
 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
@@ -83,4 +72,4 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 📄 License
 The MIT License (MIT). Please see License File for more information.
 
-Created by Satyakaam Mishra
+
