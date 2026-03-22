@@ -28,16 +28,23 @@ You can install the package via composer:
 ```bash
 composer require saammi/any-chat
 
+
 🛠 Usage
 Simply place the Livewire component in your Blade layout (usually before the closing </body> tag):
 
-<livewire:any-chat-widget />
+<livewire:anychat-widget />
+and <livewire:anychat-dashboard />  on any other component.
+ Setup reverb or pusher and start chatting.
 
-Advanced Customization
+
+Currently only the userside chat can be customized.
+
+
+Advanced Customization foruser facing widget
 
 You can customize the widget's appearance using props:
 
-<livewire:any-chat-widget 
+<livewire:anychat-widget 
     height="500px" 
     width="400px" 
     color="zinc" 
