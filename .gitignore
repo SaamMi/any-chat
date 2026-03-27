@@ -1,0 +1,16 @@
+/vendor/
+/.phpunit.result.cache
+/.vscode/
+/.idea/
+.env
+.env.backup
+composer.lock
+/node_modules/
+/public/hot
+/public/storage
+/storage/*.key
+/tests/Browser/screenshots/
+/tests/Browser/console/
+auth.json
+npm-debug.log
+yarn-error.log
