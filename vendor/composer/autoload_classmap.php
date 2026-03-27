@@ -7841,7 +7841,6 @@ return array(
     'Termwind\\ValueObjects\\Node' => $vendorDir . '/nunomaduro/termwind/src/ValueObjects/Node.php',
     'Termwind\\ValueObjects\\Style' => $vendorDir . '/nunomaduro/termwind/src/ValueObjects/Style.php',
     'Termwind\\ValueObjects\\Styles' => $vendorDir . '/nunomaduro/termwind/src/ValueObjects/Styles.php',
-    'Tests\\Browser\\SmokeTest' => $baseDir . '/tests/Browser/SmokeTest.php',
     'Tests\\Browser\\WidgetTest' => $baseDir . '/tests/Browser/WidgetTest.php',
     'Tests\\DuskTestCase' => $baseDir . '/tests/DuskTestCase.php',
     'Tests\\Feature\\LivewireWidgetTest' => $baseDir . '/tests/Feature/LivewireWidgetTest.php',

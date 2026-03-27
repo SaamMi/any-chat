@@ -8531,7 +8531,6 @@ class ComposerStaticInit4608aad0e3b643db254db026037bf9b3
         'Termwind\\ValueObjects\\Node' => __DIR__ . '/..' . '/nunomaduro/termwind/src/ValueObjects/Node.php',
         'Termwind\\ValueObjects\\Style' => __DIR__ . '/..' . '/nunomaduro/termwind/src/ValueObjects/Style.php',
         'Termwind\\ValueObjects\\Styles' => __DIR__ . '/..' . '/nunomaduro/termwind/src/ValueObjects/Styles.php',
-        'Tests\\Browser\\SmokeTest' => __DIR__ . '/../..' . '/tests/Browser/SmokeTest.php',
         'Tests\\Browser\\WidgetTest' => __DIR__ . '/../..' . '/tests/Browser/WidgetTest.php',
         'Tests\\DuskTestCase' => __DIR__ . '/../..' . '/tests/DuskTestCase.php',
         'Tests\\Feature\\LivewireWidgetTest' => __DIR__ . '/../..' . '/tests/Feature/LivewireWidgetTest.php',
