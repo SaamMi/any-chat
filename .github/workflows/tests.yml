@@ -1,0 +1,36 @@
+name: Browser Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, gd, sqlite3
+          coverage: none
+
+      - name: Install Dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Upgrade Chrome Driver
+        run: php vendor/bin/dusk-updater detect --auto-update
+
+      - name: Run Browser Tests
+        
+        run: |
+          Xvfb :99 -screen 0 1920x1080x24 &
+          vendor/bin/pest
+        env:
+          DISPLAY: :99
