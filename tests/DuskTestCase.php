@@ -27,27 +27,27 @@ abstract class DuskTestCase extends OrchestraDusk
             return view('anychat::test-chat');
         })->middleware('web');
     }
-    protected function driver(): RemoteWebDriver
-{
-    $options = (new ChromeOptions)->addArguments([
-        '--disable-gpu',
-        '--headless=new', // Use the new headless engine
-        '--no-sandbox',
-        '--window-size=1920,1080',
-    ]);
 
-    return RemoteWebDriver::create(
-        $_ENV['DUSK_DRIVER_URL'] ?? 'http://localhost:9515',
-        DesiredCapabilities::chrome()->setCapability(
-            ChromeOptions::CAPABILITY, $options
-        )
-    );
-}
+    protected function driver(): RemoteWebDriver
+    {
+        $options = (new ChromeOptions)->addArguments([
+            '--disable-gpu',
+            '--headless=new', // Use the new headless engine
+            '--no-sandbox',
+            '--window-size=1920,1080',
+        ]);
+
+        return RemoteWebDriver::create(
+            $_ENV['DUSK_DRIVER_URL'] ?? 'http://localhost:9515',
+            DesiredCapabilities::chrome()->setCapability(
+                ChromeOptions::CAPABILITY, $options
+            )
+        );
+    }
 
     protected function getEnvironmentSetUp($app)
     {
 
         $app['config']->set('app.key', 'base64:OTY4Y214YTMycW93NHZueXp3cmZ0Z3loYm5tancxcXo=');
     }
-    
 }

@@ -3,7 +3,7 @@
         'name' => 'saammi/any-chat',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '87be34c6aa05bdaba27a78b0fea22ab354e60bfa',
+        'reference' => '95968a7d8841ee8ce3c1258a76c2349755022ceb',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -1079,7 +1079,7 @@
         'saammi/any-chat' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '87be34c6aa05bdaba27a78b0fea22ab354e60bfa',
+            'reference' => '95968a7d8841ee8ce3c1258a76c2349755022ceb',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
