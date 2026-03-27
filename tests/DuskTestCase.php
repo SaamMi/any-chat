@@ -2,6 +2,9 @@
 
 namespace Tests;
 
+use Facebook\WebDriver\Chrome\ChromeOptions;
+use Facebook\WebDriver\Remote\DesiredCapabilities;
+use Facebook\WebDriver\Remote\RemoteWebDriver; 
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\Dusk\TestCase as OrchestraDusk;
 use SaamMi\AnyChat\AnyChatServiceProvider;
