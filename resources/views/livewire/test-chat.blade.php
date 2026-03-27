@@ -32,7 +32,8 @@
 <div x-data="anychatWidget" class="relative" wire:ignore>
     
     {{-- Trigger --}}
-    <button popovertarget="chatbox" 
+    <button dusk="chat-trigger"
+            popovertarget="chatbox" 
             style="background-color: {{ $primaryColor ?? $defaultUserBg }};"
             class="fixed bottom-5 right-5 z-50 p-4 rounded-full text-white shadow-2xl">
         <span>Chat</span>
