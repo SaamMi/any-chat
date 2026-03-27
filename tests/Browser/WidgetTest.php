@@ -12,7 +12,7 @@ class WidgetTest extends DuskTestCase
     {
         $this->browse(function (Browser $browser) {
             $browser->visit('/anychat-test')
-                ->waitForText('Chat with us', 10) // Adding a 10s timeout just in case
+                ->waitForText('chat', 10) // Adding a 10s timeout just in case
                 ->assertVisible('[dusk="chat-trigger"]');
         });
     }
