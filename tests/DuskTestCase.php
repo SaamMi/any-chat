@@ -52,5 +52,9 @@ abstract class DuskTestCase extends OrchestraDusk
     {
 
         $app['config']->set('app.key', 'base64:OTY4Y214YTMycW93NHZueXp3cmZ0Z3loYm5tancxcXo=');
+   app['view']->addLocation(__DIR__ . '/views');
+
+    // Also, ensure your package's real views are loaded
+    // $app['view']->addNamespace('any-chat', __DIR__ . '/../resources/views');
     }
 }
