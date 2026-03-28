@@ -43,3 +43,9 @@ jobs:
           vendor/bin/pest
         env:
           DISPLAY: :99
+      - name: Upload Screenshots on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dusk-screenshots
+          path: tests/Browser/screenshots
