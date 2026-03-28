@@ -56,9 +56,8 @@ abstract class DuskTestCase extends OrchestraDusk
 
         // Also, ensure your package's real views are loaded
         $app['view']->addNamespace('any-chat', __DIR__.'/../resources/views');
-        app['view']->addLocation(__DIR__.'/views');
+        $app['view']->addLocation(__DIR__.'/views');
 
-        // Also, ensure your package's real views are loaded
-        // $app['view']->addNamespace('any-chat', __DIR__ . '/../resources/views');
+        
     }
 }
