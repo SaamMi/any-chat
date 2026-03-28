@@ -58,6 +58,5 @@ abstract class DuskTestCase extends OrchestraDusk
         $app['view']->addNamespace('any-chat', __DIR__.'/../resources/views');
         $app['view']->addLocation(__DIR__.'/views');
 
-        
     }
 }
