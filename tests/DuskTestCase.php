@@ -19,9 +19,6 @@ abstract class DuskTestCase extends OrchestraDusk
         ];
     }
 
-  
-  
-
     protected function driver(): RemoteWebDriver
     {
         $options = (new ChromeOptions)->addArguments([

@@ -35,7 +35,7 @@ class AnyChatServiceProvider extends ServiceProvider
                 // This returns the 'parent' view you created for testing
                 return view('test-chat');
             })->name('anychat.test');
-            
+
         });
     }
 }
