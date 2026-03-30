@@ -33,7 +33,7 @@ Install the package via Composer:
 
 ```bash
 composer require saammi/any-chat
-
+```
 
 🛠 Usage
 1. The Chat Widget
@@ -43,12 +43,14 @@ Place the component in your public-facing Blade templates:
 
 ```html
 <x-anychat />
+```
 
 2. The Response Dashboard
 Access incoming messages using the administrative dashboard component:
 
 ```html
 <livewire:anychat-dashboard />
+```
 
 Prerequisites
 Ensure your layout file includes the required Livewire and Alpine.js assets:
@@ -65,6 +67,7 @@ Ensure your layout file includes the required Livewire and Alpine.js assets:
     <script defer src="[https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js](https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js)"></script>
 </body>
 </html>
+```
 
 Setup reverb or pusher and you are good to go.
 
@@ -81,7 +84,7 @@ You can fine-tune the widget appearance directly through props:
     primaryColor="#7c3aed"
     adminColor="#f3f4f6"
 />
-
+```
 
 🧪 Testing
 We maintain a robust test suite using PHPUnit and Laravel Dusk to ensure stability across PHP and Laravel versions.
@@ -89,6 +92,7 @@ We maintain a robust test suite using PHPUnit and Laravel Dusk to ensure stabili
 Unit Tests:
 ```bash
 ./vendor/bin/phpunit --testsuite Unit
+```
 
 Browser Tests (Dusk):
 ```bash
@@ -97,6 +101,7 @@ Browser Tests (Dusk):
 
 # Run the browser suite
 ./vendor/bin/testbench dusk
+```
 
 🗺 Roadmap (Beta)
 [ ] File Uploads: Send images and documents via chat.
