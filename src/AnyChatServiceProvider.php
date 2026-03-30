@@ -33,12 +33,9 @@ class AnyChatServiceProvider extends ServiceProvider
         Route::middleware('web')->group(function () {
             Route::get('/anychat-test', function () {
                 // This returns the 'parent' view you created for testing
-                return view('anychat.livewire::test-chat');
+                return view('test-chat');
             })->name('anychat.test');
-            // NEW: Simple smoke test route
-            Route::get('/smoke-test', function () {
-                return view('anychat::smoke-test');
-            });
+            
         });
     }
 }

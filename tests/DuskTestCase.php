@@ -19,17 +19,8 @@ abstract class DuskTestCase extends OrchestraDusk
         ];
     }
 
-    /**
-     * This defines routes specifically for the browser instance
-     * to visit during the test.
-     */
-    protected function defineRoutes($router)
-    {
-        $router->get('/anychat-test', function () {
-            // Ensure you have a 'test-chat.blade.php' in your package's views
-            return view('anychat::test-chat');
-        })->middleware('web');
-    }
+  
+  
 
     protected function driver(): RemoteWebDriver
     {
