@@ -30,6 +30,8 @@
 @endphp
 
 <div x-data="anychatWidget" class="relative" wire:ignore>
+
+
     
     {{-- Trigger --}}
     <button dusk="chat-trigger"
@@ -64,28 +66,50 @@
                         </div>
 
                     </div>
-                                </template>
+                </template>
 </div>
     <div class="p-4 border-t border-slate-100 bg-white shrink-0">
             <div class="relative flex items-center">
+
+            <div x-show="showPicker" @click.away="showPicker = false" class="absolute bottom-full right-0 mb-2 z-50" wire:ignore>
+
+   <emoji-picker @emoji-click="addEmoji($event.detail.unicode)" class="light"></emoji-picker>
+
+</div>
                 <input type="text" 
                        x-model="message" 
+                       wire:model.live="message" 
                        @keydown.enter="sendChatMessage()" 
                        placeholder="send..."
                        class="w-full text-sm border border-slate-200 rounded-xl pl-4 pr-12 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all bg-slate-50/50">
-                
-                <button @click="sendChatMessage()" 
+
+                <button @click.stop="showPicker = !showPicker" type="button" class="z-50 absolute right-10 p-2 text-slate-400 hover:text-indigo-500 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              
+            </div>
+              <button @click="sendChatMessage()" 
                         class="absolute right-2 p-2 text-blue-600 hover:text-blue-700 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
                 </button>
-            </div>
+            <span> error </span>
+              <div>  @error('message')
+                   <span class="text-[10px] text-red-500 mt-1 ml-2 font-medium">{{ $message }}</span>
+                @enderror
+             </div> 
         </div>
             </div>
         </div>
     </div>
 
     <style>
-        .anychat-popover:popover-open { display: flex !important; flex-direction: column; border: none; padding: 0; }
+        .anychat-popover:popover-open { display: flex !important; flex-direction: column; border: none; padding: 0; overflow: visible !important; }
+        emoji-picker {
+    width: 100%;
+    height: 300px;
+    --num-columns: 6;
+    --category-emoji-size: 1rem;
+}
     </style>
 </div>
 
@@ -98,9 +122,10 @@
             message: '',
             chatId: localStorage.getItem('anychat_id'), // Persistent ID local check
             welcomeSent: false,
+            showPicker: false,
 
             init() {
-
+console.log(Alpine)
                     this.$watch('currentMessages', (value) => {
             console.log("Saving to localStorage...", value);
         localStorage.setItem('current_session', JSON.stringify(value));
@@ -130,6 +155,13 @@
                 }
             }
         },
+        addEmoji(emoji) {
+
+            this.message += emoji; 
+            this.$wire.set('message', this.message); 
+            this.showPicker = false; 
+
+        },
 
         sendWelcomeMessage() {
             this.currentMessages.push({
@@ -156,20 +188,28 @@
 
             async sendChatMessage() {
                 if (this.message.trim() === '') return;
+
+                 let result = await this.$wire.sendMessage();
                 
                 // Optimized: Local echo for better UX
                 const pendingMsg = { message: this.message, auth: 0 };
                 this.currentMessages.push(pendingMsg);
 
-                await this.$wire.sendMessage(this.message);
-                this.message = '';
+               
+                
+                // Clear Alpine local state only if validation passed
+                if (result !== false) {
+                    this.message = '';
+                }
 
                 console.log(this.currentMessages)
             },
-                scrollToBottom(id) {
-            const panel = document.querySelector(`#chat-thread-${id} [x-ref="messagePanel"]`);
-            if (panel) panel.scrollTop = panel.scrollHeight;
-        }
+            scrollToBottom() {
+    
+                if (this.$refs.messagePanel) {
+                this.$refs.messagePanel.scrollTop = this.$refs.messagePanel.scrollHeight;
+               }
+            } 
 
         
         }));
@@ -181,3 +221,5 @@
         });
     });
 </script>
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>

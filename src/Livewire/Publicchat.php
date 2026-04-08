@@ -6,9 +6,12 @@ use Illuminate\Support\Facades\Crypt;
 use Livewire\Component;
 use SaamMi\AnyChat\Events\NewMessage;
 use SaamMi\AnyChat\Events\UserSentMessage;
+use Livewire\Attributes\Validate;
 
 class Publicchat extends Component
 {
+     #[Validate('required|string|max:1000|min:4')] 
+    public $message; 
     protected $activeChatId;
 
     /**
@@ -29,11 +32,12 @@ class Publicchat extends Component
         }
     }
 
-    public function sendMessage($messageText)
+    public function sendMessage()
     {
-        if (empty($messageText)) {
-            return;
-        }
+          dd($this->validate(['message' => 'required|string|max:1000|min:4']));
+ 
+        // 2. Sanitize Input for Security
+        $cleanMessage = strip_tags(trim($this->message));
 
         // Handshake: If no activeChatId, generate a new identity
         if (!$this->activeChatId) {
@@ -49,16 +53,18 @@ class Publicchat extends Component
 
         // Relay to Reverb/Pusher
         broadcast(new NewMessage([
-            'message' => $messageText,
+            'message' => $this->message,
             'chatId' => $this->activeChatId,
             'time' => now()->format('H:i'),
         ]))->toOthers();
 
         UserSentMessage::dispatch([
-            'message' => $messageText,
+            'message' => $this->message,
             'chatId' => $this->activeChatId,
 
         ]);
+
+         $this->reset('message');
     }
 
     public function render()
