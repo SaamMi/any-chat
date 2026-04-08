@@ -35,7 +35,7 @@ class Publicchat extends Component
 
     public function sendMessage()
     {
-        dd($this->validate(['message' => 'required|string|max:1000|min:4']));
+        $this->validate(['message' => 'required|string|max:1000|min:4']);
 
         // 2. Sanitize Input for Security
         $cleanMessage = strip_tags(trim($this->message));
