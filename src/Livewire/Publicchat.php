@@ -3,15 +3,16 @@
 namespace SaamMi\AnyChat\Livewire;
 
 use Illuminate\Support\Facades\Crypt;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use SaamMi\AnyChat\Events\NewMessage;
 use SaamMi\AnyChat\Events\UserSentMessage;
-use Livewire\Attributes\Validate;
 
 class Publicchat extends Component
 {
-     #[Validate('required|string|max:1000|min:4')] 
-    public $message; 
+    #[Validate('required|string|max:1000|min:4')]
+    public $message;
+
     protected $activeChatId;
 
     /**
@@ -34,8 +35,8 @@ class Publicchat extends Component
 
     public function sendMessage()
     {
-          dd($this->validate(['message' => 'required|string|max:1000|min:4']));
- 
+        dd($this->validate(['message' => 'required|string|max:1000|min:4']));
+
         // 2. Sanitize Input for Security
         $cleanMessage = strip_tags(trim($this->message));
 
@@ -64,7 +65,7 @@ class Publicchat extends Component
 
         ]);
 
-         $this->reset('message');
+        $this->reset('message');
     }
 
     public function render()
