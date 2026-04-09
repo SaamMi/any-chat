@@ -10,6 +10,12 @@
 </p>
 
 <p align="center">
+  <img src="art/Chatclosed.png" alt="AnyChat Logo" width="200">
+   <img src="art/ChatOpen.png" alt="AnyChat Logo" width="200">
+   <img src="art/ChatEmoji.png" alt="AnyChat Logo" width="200">
+</p>
+
+<p align="center">
   <img src="https://github.com/SaamMi/any-chat/actions/workflows/tests.yml/badge.svg" alt="Tests">
   <img src="https://github.com/saammi/any-chat/actions/workflows/pint.yml/badge.svg" alt="Code Style">
   <a href="https://packagist.org/packages/saammi/any-chat"><img src="https://img.shields.io/packagist/v/saammi/any-chat.svg?style=flat-square" alt="Latest Version"></a>
