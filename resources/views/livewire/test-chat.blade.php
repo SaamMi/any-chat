@@ -89,7 +89,8 @@
     </div>
 
     {{-- Trigger: Pinned bottom-right --}}
-    <button @click="toggleChat"
+    <button dusk="chat-trigger"
+            @click="toggleChat"
             style="background-color: {{ $primaryColor ?? $defaultUserBg }}; position: fixed !important; bottom: 20px !important; right: 20px !important;"
             class="z-[9999] p-4 rounded-full text-white shadow-2xl hover:scale-110 transition-transform">
         <span x-show="!isOpen">chat</span>
