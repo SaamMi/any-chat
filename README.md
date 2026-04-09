@@ -14,7 +14,7 @@
    <img src="art/ChatOpen.png" alt="AnyChat Logo" width="200">
    <img src="art/ChatEmoji.png" alt="AnyChat Logo" width="200">
     <img src="art/NoMessageDashboard.png" alt="AnyChat Logo" width="200">
-    <img src="art/MessageDashboard.png" alt="AnyChat Logo" width="200">
+    <img src="art/MessageDashboard.png" alt="AnyChat Logo" width="800">
 </p>
 
 <p align="center">
