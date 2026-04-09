@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="art/Chatclosed.png" alt="AnyChat Logo" width="200">
+  <img src="art/NotOpen.png" alt="AnyChat Logo" width="200">
    <img src="art/ChatOpen.png" alt="AnyChat Logo" width="200">
    <img src="art/ChatEmoji.png" alt="AnyChat Logo" width="200">
 </p>
