@@ -24,7 +24,7 @@
 @endphp
 
 {{-- ROOT: No relative class --}}
-<div x-data="anychatWidget" wire:ignore>
+<div x-data="anychatWidget" wire:ignore.self>
 
     {{-- Chat Window --}}
     <div x-show="isOpen" 
@@ -71,10 +71,11 @@
 
                     <input type="text" 
                            x-model="message" 
+                           wire:model="message"
                            @keydown.enter="sendChatMessage()" 
                            placeholder="Type a message..."
                            class="w-full text-sm border border-slate-200 rounded-xl pl-4 pr-20 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all bg-slate-50/50">
-
+                      
                     <div class="absolute right-2 flex items-center space-x-1">
                         <button @click.stop="showPicker = !showPicker" type="button" class="p-2 text-slate-400 hover:text-indigo-500">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -82,15 +83,20 @@
                         <button @click="sendChatMessage()" class="p-2 text-blue-600 hover:text-blue-700">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
                         </button>
+                    
                     </div>
+                     @error('message')
+                        <span class="text-red-500 text-[11px] mt-1 ml-2 font-medium animate-pulse">
+                            {{ $message }}
+                        </span>
+                    @enderror
                 </div>
             </div>
         </div>
     </div>
 
     {{-- Trigger: Pinned bottom-right --}}
-    <button dusk="chat-trigger"
-            @click="toggleChat"
+    <button @click="toggleChat"
             style="background-color: {{ $primaryColor ?? $defaultUserBg }}; position: fixed !important; bottom: 20px !important; right: 20px !important;"
             class="z-[9999] p-4 rounded-full text-white shadow-2xl hover:scale-110 transition-transform">
         <span x-show="!isOpen">chat</span>
