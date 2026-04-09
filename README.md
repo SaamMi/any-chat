@@ -50,7 +50,7 @@ Place the component in your public-facing Blade templates:
 
 
 ```html
-<x-anychat />
+ <livewire:anychat-widget />
 ```
 
 2. The Response Dashboard
