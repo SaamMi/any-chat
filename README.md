@@ -9,6 +9,8 @@
   A support-first chat widget for Laravel, powered by Livewire and Alpine.js.
 </p>
 
+
+
 <p align="center">
   <img src="https://github.com/SaamMi/any-chat/actions/workflows/tests.yml/badge.svg" alt="Tests">
   <img src="https://github.com/saammi/any-chat/actions/workflows/pint.yml/badge.svg" alt="Code Style">
@@ -42,7 +44,7 @@ Place the component in your public-facing Blade templates:
 
 
 ```html
-<x-anychat />
+ <livewire:anychat-widget />
 ```
 
 2. The Response Dashboard
