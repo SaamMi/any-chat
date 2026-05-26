@@ -125,7 +125,7 @@ public function performSearch($query)
         $this->reset('message');
     }
 
-    protected function getHistory()
+    public function getHistory()
     {
         if (!$this->activeConversation) return [];
         return $this->activeConversation->messages()

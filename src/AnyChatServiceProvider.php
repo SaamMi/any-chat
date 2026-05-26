@@ -31,6 +31,12 @@ class AnyChatServiceProvider extends ServiceProvider
         if ($this->app->environment('local', 'testing')) {
             $this->registerTestRoutes();
         }
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__.'/../resources/views' => resource_path('views/vendor/anychat'),
+            ], 'anychat-views');
+        }
     }
 
     public function register()

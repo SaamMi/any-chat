@@ -108,7 +108,7 @@
         <div class="flex flex-col text-left">
             {{-- Blade handles the text rendering directly --}}
             <span class="font-bold text-sm text-white">{{ $user->name }}</span>
-            <span class="text-[10px] text-slate-500">{{ $user->email }}</span>
+       
         </div>
 
         {{-- NEW: Search Result Badge --}}
@@ -124,42 +124,44 @@
     </div>
 
     {{-- Main Chat Area --}}
-    <div class="flex-1 flex flex-col relative h-full bg-white">
+  {{-- Main Chat Area --}}
+    <div class="flex-1 flex flex-col relative h-full bg-white min-w-0 max-w-full overflow-hidden">
         <template x-if="activeChatId">
-            <div class="flex flex-col h-full w-full">
+            <div class="flex flex-col h-full w-full min-w-0">
                 
                 {{-- Chat Header --}}
-                <div class="p-4 border-b flex justify-between items-center shadow-sm bg-white z-10">
-                    <div class="flex items-center gap-3">
-                        <span class="font-bold text-slate-800" x-text="sessions[activeChatId]?.metadata?.name || 'Loading...'"></span>
+                <div class="p-4 border-b flex justify-between items-center shadow-sm bg-white z-10 min-w-0">
+                    <div class="flex items-center gap-3 min-w-0 w-full">
+                        {{-- Added truncate so long names don't push the layout out --}}
+                        <span class="font-bold text-slate-800 truncate" x-text="sessions[activeChatId]?.metadata?.name || 'Loading...'"></span>
                     </div>
                 </div>
 
                 {{-- Message Panel --}}
-                <div wire:ignore class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50" :id="'panel-' + activeChatId">
+                {{-- Added overflow-x-hidden to strictly forbid horizontal blowout --}}
+                <div wire:ignore class="flex-1 overflow-y-auto overflow-x-hidden p-6 space-y-4 bg-slate-50 min-w-0" :id="'panel-' + activeChatId">
                     <template x-for="(msg, index) in sessions[activeChatId]?.messages || []" :key="index">
                         
-                        {{-- Row Alignment --}}
-                        <div :class="(msg.auth == 1 || msg.is_admin) ? 'flex justify-end' : 'flex justify-start'" class="msg-row w-full mb-4">
+                        {{-- Row Alignment (Moved 'flex' to standard class to avoid binding conflicts) --}}
+                        <div class="msg-row flex w-full mb-4 min-w-0" :class="(msg.auth == 1 || msg.is_admin) ? 'justify-end' : 'justify-start'">
                             
-                            {{-- Bubble Layout (Notice the compiled Blade ternary operator inside the Alpine class) --}}
-<div class="p-3 rounded-2xl shadow-sm max-w-[70%] msg-bubble transition-all duration-500"
-     :class="(msg.auth == 1 || msg.is_admin) 
-            ? 'bg-dynamic-admin text-dynamic-admin rounded-tr-sm' 
-            : '{{ $variant === "outline" ? "border-2 border-dynamic-user text-dynamic-user bg-transparent rounded-tl-sm" : "bg-dynamic-user text-white rounded-tl-sm" }}'">
-    
-    <p x-text="msg.body || msg.message" class="text-sm" :id="'msg-' + msg.id"></p>
-</div>
-
+                            {{-- Bubble Layout --}}
+                            <div class="p-3 rounded-2xl shadow-sm max-w-[85%] msg-bubble transition-all duration-500 min-w-0"
+                                 :class="(msg.auth == 1 || msg.is_admin) 
+                                        ? 'bg-dynamic-admin text-dynamic-admin rounded-tr-sm' 
+                                        : '{{ $variant === "outline" ? "border-2 border-dynamic-user text-dynamic-user bg-transparent rounded-tl-sm" : "bg-dynamic-user text-white rounded-tl-sm" }}'">
+                                
+                                {{-- Added min-w-0 and break-words here --}}
+                                <p x-text="msg.body || msg.message" class="text-sm break-words whitespace-pre-wrap min-w-0" :id="'msg-' + msg.id"></p>
+                            </div>
                             
                         </div>
                     </template>
                 </div>
 
-                {{-- Input Area --}}
-              {{-- Input Area with AI Integration --}}
-                <div class="p-4 border-t bg-white relative">
-                    <div class="flex items-center gap-2">
+                {{-- Input Area with AI Integration --}}
+                <div class="p-4 border-t bg-white relative min-w-0 w-full">
+                    <div class="flex items-center gap-2 min-w-0 w-full">
                         
                         {{-- AI Draft Button --}}
                         <button @click="draftWithAI()" 
@@ -177,14 +179,14 @@
                                x-model="message" 
                                @keydown.enter="sendChatMessage()" 
                                placeholder="Type your reply or ask AI..." 
-                               class="w-full border border-slate-300 rounded-2xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all">
+                               class="w-full border border-slate-300 rounded-2xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all min-w-0">
                     </div>
                 </div>
             </div>
         </template>
         
         {{-- Empty State --}}
-        <div x-show="!activeChatId" class="flex-1 flex items-center justify-center text-slate-400 bg-slate-50">
+        <div x-show="!activeChatId" class="flex-1 flex items-center justify-center text-slate-400 bg-slate-50 min-w-0">
             <div class="text-center">
                 <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <p>Select a conversation to start messaging</p>
@@ -252,9 +254,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async setActiveChat(id, type, name, shouldScroll = true) {
-    this.activeId = id;
-    this.activeType = type;
-    this.activeName = name;
+    this.activeChatId = id;
 
              // 1. Update the browser URL without reloading the page
     const newUrl = `{{ $this->path }}/${id}/${encodeURIComponent(type)}`;
@@ -276,7 +276,7 @@ document.addEventListener('alpine:init', () => {
     this.syncCurrentChatResults();
             
             // Trigger Alpine reactivity
-           // this.sessions = { ...this.sessions };
+            this.sessions = { ...this.sessions };
             
             if (shouldScroll) {
                 this.$nextTick(() => this.scrollToBottom(id));
@@ -342,14 +342,14 @@ async performSearch(query) {
         
 
 syncCurrentChatResults() {
-    if (!this.activeId) {
+    if (!this.activeChatId) {
         this.results = [];
         this.activeResultIndex = -1;
         return;
     }
     
     // Filter global results to only those matching the current active user/chat
-    this.results = this.allResults.filter(r => r.chatId == this.activeId);
+    this.results = this.allResults.filter(r => r.chatId == this.activeChatId);
     this.activeResultIndex = this.results.length > 0 ? 0 : -1;
 },
 
