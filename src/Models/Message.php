@@ -2,45 +2,35 @@
 
 namespace SaamMi\AnyChat\Models;
 
-use Illuminate\Broadcasting\PrivateChannel;
+
 use Illuminate\Database\Eloquent\Model;
-// use Illuminate\Database\Eloquent\BroadcastsEvents;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Message extends Model
 {
-    // use BroadcastsEvents;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'message',
-        'cookievalue',
-        'auth',
-        'replied',
+     protected $fillable = [
+        'body',
+        'participant_id',
+        'reply_id',
+        'conversation_id',
+        'type',
+        'kept_at',
     ];
 
-    public function post(): BelongsTo
+      public function conversation(): BelongsTo
     {
-        return $this->belongsTo(User::class);
-
+        return $this->belongsTo(Conversation::class);
     }
 
-    /* public function broadcastOn($event): PrivateChannel
-     {
-         return new PrivateChannel('chat-room');
-     } */
+     public function participant(): BelongsTo
+    {
+        return $this->belongsTo(Participant::class, 'participant_id');
+    }
 
-    /*  public function broadcastWith(): array
-      {
-
-          return [
-          'message' => $this,
-          'user' => $this->user->only('name'),
-      ];
-      }  */
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
+    }
 
 }

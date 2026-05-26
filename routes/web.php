@@ -18,9 +18,8 @@ Route::get('/welcome', function () {
 ->middleware(CustomCookie::class)
 ->name('chat'); */
 
-Route::get('/chat', Publicchat::class)
-    ->middleware(CustomCookie::class)
-    ->name('chat');
+Route::get('/cha', Publicchat::class)
+     ->name('chat');
 
 // Route::middleware(['auth', 'verified'])->group(function () {
 /*Route::get('/',Publicchat::class)

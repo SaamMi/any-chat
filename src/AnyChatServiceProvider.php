@@ -8,6 +8,10 @@ use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use SaamMi\AnyChat\Livewire\Publicchat;
 use SaamMi\AnyChat\Livewire\PublicResponse;
+use SaamMi\AnyChat\Contracts\AiCopilot;
+use SaamMi\AnyChat\Services\NullAiCopilot;
+
+
 
 class AnyChatServiceProvider extends ServiceProvider
 {
@@ -15,6 +19,7 @@ class AnyChatServiceProvider extends ServiceProvider
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'anychat');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         // Register the component
         Livewire::component('anychat-widget', Publicchat::class);
@@ -27,6 +32,13 @@ class AnyChatServiceProvider extends ServiceProvider
             $this->registerTestRoutes();
         }
     }
+
+    public function register()
+{
+
+
+    $this->app->bindIf(AiCopilot::class, NullAiCopilot::class);
+}
 
     protected function registerTestRoutes()
     {

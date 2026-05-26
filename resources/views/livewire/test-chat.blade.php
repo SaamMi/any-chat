@@ -1,225 +1,213 @@
+
 @props([
     'variant' => 'primary',
     'color' => 'blue',
-    'height' => '250px',
+    'height' => '450px',
     'width' => '380px',
-    'primaryColor' => null, {{-- User Color --}}
-    'adminColor' => null,   {{-- Admin Color --}}
+    'primaryColor' => null,
+    'adminColor' => null,
     'size' => 'base',
+    'allowEmojis' => false,
+    'allowUploads' => false,
+    
 ])
 
 @php
-    use Illuminate\Support\Arr;
 
-    // 1. Set Default User Colors (Fallback if no primaryColor prop)
+
+ 
+
+ 
+   
+
+ 
+    use Illuminate\Support\Arr;
     $defaultUserBg = match ($color) {
         'red'  => '#ef4444',
         'zinc' => '#18181b',
-        default => '#2563eb', // Blue
+        default => '#2563eb',
     };
-
-    // 2. Window Classes
     $windowClasses = Arr::toCssClasses([
-        'bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden',
+        'bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 rounded-2xl',
         'text-sm' => $size === 'base',
         'text-xs' => $size === 'xs',
     ]);
-
-    // 3. Shared Bubble Base Classes
     $bubbleBase = 'p-3 rounded-2xl shadow-sm max-w-[85%]';
-@endphp
-
-<div x-data="anychatWidget" class="relative" wire:ignore>
-
-
     
-    {{-- Trigger --}}
-    <button dusk="chat-trigger"
-            popovertarget="chatbox" 
-            style="background-color: {{ $primaryColor ?? $defaultUserBg }};"
-            class="fixed bottom-5 right-5 z-50 p-4 rounded-full text-white shadow-2xl">
-        <span>chat</span>
-    </button>
+@endphp
+{{-- resources/views/livewire/test-chat.blade.php --}}
+<div x-data="anychatWidget" wire:ignore.self> {{-- SINGLE ROOT ELEMENT --}}
 
-    <div popover="manual" id="chatbox" @toggle="handleToggle($event)"
-         class="{{ $windowClasses }} anychat-popover" 
-         style="height: {{ $height }}; width: {{ $width }}; margin: 0; inset: auto 20px 85px auto;">
+  
+
+
+    {{-- Chat Window --}}
+    <div x-show="isOpen" 
+         class="bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 rounded-2xl" 
+         style="height: {{ $height }}; width: {{ $width }}; position: fixed; bottom: 85px; right: 20px; z-index: 9998; display: none;">
         
-        <div class="flex flex-col h-full">
-            {{-- Header --}}
+        <div class="flex flex-col h-full overflow-hidden rounded-2xl">
+            {{-- Header with Identity Distinction[cite: 4] --}}
             <div class="p-4 text-white flex justify-between items-center" 
-                 style="background-color: {{ $primaryColor ?? $defaultUserBg }};">
-                <span class="font-bold">Support</span>
-                <button popovertarget="chatbox">&times;</button>
+                 style="background-color: {{ $primaryColor ?? '#2563eb' }};">
+                <div class="flex flex-col">
+                    <span class="font-bold">Live Support</span>
+                    <span class="text-[10px] opacity-80 uppercase tracking-wider">
+                        Connected as: {{ $senderName }}
+                    </span>
+                </div>
+                <button @click="isOpen = false" class="text-2xl hover:opacity-75">&times;</button>
             </div>
 
+            {{-- Messages Area --}}
             <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50" x-ref="messagePanel">
                 <template x-for="(msg, index) in currentMessages" :key="index">
-                   <div :class="msg.auth == 1 ? 'flex justify-start' : 'flex justify-end'">
-                        
-                        {{-- THE FIX IS HERE: Separate Style Logic --}}
-                        <div class="{{ $bubbleBase }}"
-                             :style="msg.auth == 1 
-                                ? 'background-color: {{ $adminColor ?? '#f1f5f9' }}; color: {{ $adminColor ? '#ffffff' : '#1e293b' }}; border-top-left-radius: 0;' 
-                                : 'background-color: {{ $primaryColor ?? $defaultUserBg }}; color: #ffffff; border-top-right-radius: 0;'">
-                            <p x-text="msg.message"></p>
+                   <div :class="Number(msg.auth) === 1 ? 'flex justify-start' : 'flex justify-end'">
+                        <div class="p-3 rounded-2xl shadow-sm max-w-[85%]"
+                             :style="Number(msg.auth) === 1 
+                                ? 'background-color: {{ $adminColor ?? '#f1f5f9' }}; color: #1e293b; border-top-left-radius: 0;' 
+                                : 'background-color: {{ $primaryColor ?? '#2563eb' }}; color: #ffffff; border-top-right-radius: 0;'">
+                            <p x-text="msg.message" class="text-sm"></p>
                         </div>
-
                     </div>
                 </template>
-</div>
-    <div class="p-4 border-t border-slate-100 bg-white shrink-0">
-            <div class="relative flex items-center">
-
-            <div x-show="showPicker" @click.away="showPicker = false" class="absolute bottom-full right-0 mb-2 z-50" wire:ignore>
-
-   <emoji-picker @emoji-click="addEmoji($event.detail.unicode)" class="light"></emoji-picker>
-
-</div>
-                <input type="text" 
-                       x-model="message" 
-                       wire:model.live="message" 
-                       @keydown.enter="sendChatMessage()" 
-                       placeholder="send..."
-                       class="w-full text-sm border border-slate-200 rounded-xl pl-4 pr-12 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition-all bg-slate-50/50">
-
-                <button @click.stop="showPicker = !showPicker" type="button" class="z-50 absolute right-10 p-2 text-slate-400 hover:text-indigo-500 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              
             </div>
-              <button @click="sendChatMessage()" 
-                        class="absolute right-2 p-2 text-blue-600 hover:text-blue-700 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                </button>
-            <span> error </span>
-              <div>  @error('message')
-                   <span class="text-[10px] text-red-500 mt-1 ml-2 font-medium">{{ $message }}</span>
-                @enderror
-             </div> 
-        </div>
+
+            {{-- Footer Section --}}
+            <div class="p-3 border-t bg-white">
+                <div class="flex items-center gap-2">
+                    {{-- 1. Upload Icon (Always blue for visibility) --}}
+                    @if($allowUploads)
+                        <label class="cursor-pointer text-blue-600 hover:text-blue-800 shrink-0 p-1">
+                            <input type="file" wire:model="attachment" class="hidden">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </label>
+                    @endif
+
+                    {{-- 2. Input --}}
+                    <input type="text" x-model="message" @keydown.enter="sendChatMessage()" placeholder="Type here..." class="flex-1 text-sm border rounded-xl px-3 py-2 outline-none focus:border-blue-500">
+
+                    {{-- 3. Emoji & Send --}}
+                    @if($allowEmojis)      
+                        <button @click.stop="showPicker = !showPicker" type="button" class="text-slate-400 hover:text-indigo-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    @endif
+
+                    <button @click="sendChatMessage()" class="text-blue-600 p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                </div>
+                
+                {{-- Attachment Status --}}
+                @if($attachment)
+                    <div class="mt-1 text-[10px] text-blue-600 italic">File attached.</div>
+                @endif
             </div>
         </div>
     </div>
 
-    <style>
-        .anychat-popover:popover-open { display: flex !important; flex-direction: column; border: none; padding: 0; overflow: visible !important; }
-        emoji-picker {
-    width: 100%;
-    height: 300px;
-    --num-columns: 6;
-    --category-emoji-size: 1rem;
-}
-    </style>
-</div>
+    {{-- Trigger Button --}}
+    <button @click="toggleChat" 
+            :style="{
+            'background-color': '{{ $primaryColor ?? $defaultUserBg }}',
+            'position': 'fixed',
+            'bottom': '20px',
+            'right': '20px',
+            'z-index': '9999'
+        }"
+            class="fixed bottom-5 right-5 p-4 rounded-full text-white shadow-xl z-[9999]">
+        <span x-show="!isOpen">Chat</span>
+        <span x-show="isOpen">&times;</span>
+    </button>
 
+    {{-- Scripts inside the root element[cite: 3] --}}
+    <script>
+     document.addEventListener('alpine:init', () => {
+    Alpine.data('anychatWidget', () => ({
+        isOpen: false,
+        currentMessages: JSON.parse(localStorage.getItem('current_session')) || [],  
+        message: '',
+        // Initialize from storage so we can subscribe immediately on load
+        conversation_id: localStorage.getItem('conversation_id'),
+        showPicker: false,
 
-
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('anychatWidget', () => ({
-            currentMessages:  JSON.parse(localStorage.getItem('current_session')) || [],  
-            message: '',
-            chatId: localStorage.getItem('anychat_id'), // Persistent ID local check
-            welcomeSent: false,
-            showPicker: false,
-
-            init() {
-console.log(Alpine)
-                    this.$watch('currentMessages', (value) => {
-            console.log("Saving to localStorage...", value);
-        localStorage.setItem('current_session', JSON.stringify(value));
-    }, { deep: true });
-                // Listen for Handshake
-                this.$wire.on('token-handshake', (data) => {
-                    localStorage.setItem('anychat_token', data.token);
-                    localStorage.setItem('anychat_id', data.chatId);
-                    this.chatId = data.chatId;
-                    this.subscribe(data.chatId);
-                });
-
-                // Resume session if data exists
-                if (this.chatId) {
-                    this.subscribe(this.chatId); 
-                }
-            },
-
-            handleToggle(event) {
-            // Check if the popover just switched to 'open'
-            if (event.newState === 'open') {
-                console.log("Chat opened via Popover API");
-                
-                // Trigger welcome message only on first open
-                if (!this.welcomeSent) {
-                    this.sendWelcomeMessage();
-                }
+        init() {
+            // Save messages to local storage whenever they change
+            this.$watch('currentMessages', (v) => localStorage.setItem('current_session', JSON.stringify(v)), { deep: true });
+            
+            // 1. CRITICAL: Subscribe immediately for returning users
+            if (this.conversation_id) {
+                this.subscribe(this.conversation_id);
             }
-        },
-        addEmoji(emoji) {
 
-            this.message += emoji; 
-            this.$wire.set('message', this.message); 
-            this.showPicker = false; 
-
-        },
-
-        sendWelcomeMessage() {
-            this.currentMessages.push({
-                message: "Hello! How can we help you today?",
-                auth: 1, // Admin style
-                created_at: new Date()
+            // 2. Handle new sessions (Handshake)
+            this.$wire.on('token-handshake', (data) => {
+                localStorage.setItem('session_token', data.token);
+                localStorage.setItem('conversation_id', data.chatId);
+                
+                // Fix: use 'data.chatId' instead of undefined 'id'
+                this.conversation_id = data.chatId;
+                this.subscribe(data.chatId);
             });
+        },
 
-            this.welcomeSent = true;
+        async sendChatMessage() {
+            if (!this.message.trim()) return;
+            let text = this.message;
+            this.message = '';
+            
+            // Add user message locally
+            this.currentMessages = [...this.currentMessages, { message: text, auth: 0 }];
+            
+            await this.$wire.set('message', text);
+            await this.$wire.sendMessage();
             this.$nextTick(() => this.scrollToBottom());
         },
 
-            subscribe(id) {
-                if (!id || !window.Echo) return;
-                window.Echo.channel(`chat.${id}`)
-                    .listen('.message.new', (e) => {
-                        this.currentMessages.push(e.message);
-                        // Auto-scroll to bottom
-                        this.$nextTick(() => {
-                            this.$refs.messagePanel.scrollTop = this.$refs.messagePanel.scrollHeight;
-                        });
-                    });
-            },
+        subscribe(id) {
+            if (!id || !window.Echo) return;
+            
+            // Prevent duplicate listeners
+            window.Echo.leave(`chat.${id}`);
 
-            async sendChatMessage() {
-                if (this.message.trim() === '') return;
+            window.Echo.channel(`chat.${id}`)
+                .listen('.message.new', (e) => {
+                    console.log("Admin Reply Received:", e); 
+                    
+                    // Extract message text safely
+                    let text = e.message?.message || e.message || e.content || "No content";
 
-                 let result = await this.$wire.sendMessage();
-                
-                // Optimized: Local echo for better UX
-                const pendingMsg = { message: this.message, auth: 0 };
-                this.currentMessages.push(pendingMsg);
+                    // If it arrives on the guest's channel, it's from the admin (auth: 1)[cite: 7]
+                    const isFromAdmin = e.message && e.message.auth !== undefined 
+                        ? Number(e.message.auth) === 1 
+                        : true;
 
-               
-                
-                // Clear Alpine local state only if validation passed
-                if (result !== false) {
-                    this.message = '';
-                }
+                    this.currentMessages = [...this.currentMessages, {
+                        message: text,
+                        auth: isFromAdmin ? 1 : 0,
+                        created_at: new Date().toISOString()
+                    }];
 
-                console.log(this.currentMessages)
-            },
-            scrollToBottom() {
-    
-                if (this.$refs.messagePanel) {
-                this.$refs.messagePanel.scrollTop = this.$refs.messagePanel.scrollHeight;
-               }
-            } 
+                    this.$nextTick(() => this.scrollToBottom());
+                });
+        },
 
-        
-        }));
-    });
+        toggleChat() { 
+            this.isOpen = !this.isOpen; 
+            if (this.isOpen) this.$nextTick(() => this.scrollToBottom()); 
+        },
 
-    document.addEventListener('livewire:init', () => {
-        Livewire.hook('request', ({ options }) => {
-            options.headers['X-AnyChat-Token'] = localStorage.getItem('anychat_token');
-        });
-    });
+        scrollToBottom() { 
+            if (this.$refs.messagePanel) {
+                this.$refs.messagePanel.scrollTop = this.$refs.messagePanel.scrollHeight; 
+            }
+        }
+    }));
+});
 </script>
+     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
 
-<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+</div>

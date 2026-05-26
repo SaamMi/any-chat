@@ -11,15 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('messages', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-            $table->string('message');
-            $table->string('cookievalue');
-            $table->boolean('replied');
-            $table->boolean('auth');
 
-        });
+Schema::create('guests', function (Blueprint $table) {
+    $table->string('id')->primary(); // Stores the hexstring
+    $table->timestamps();
+});
+       
     }
 
     /**
@@ -27,6 +24,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('messages');
+        Schema::dropIfExists('guests');
     }
 };
+
+
+
+
