@@ -78,12 +78,15 @@ Setup reverb or pusher and you are good to go.
 🎨 Customization
 
 Inside the boot method of AppServiceProvider,register a panel with a custom route,
+```html
  \SaamMi\AnyChat\AnyChatPanel::make('support')
         ->path('/live-chat')
         ->allowEmojis()
         ->allowFileUploads()
         ->primaryColor('#ef4444')
         ->register(); 
+
+```
 
         to register the dashboard
         or the live support widget.
