@@ -78,6 +78,8 @@ Setup reverb or pusher and you are good to go.
 🎨 Customization
 
 Inside the boot method of AppServiceProvider,register a panel with a custom route,
+to register the dashboard or the live support widget.
+
 ```html
  \SaamMi\AnyChat\AnyChatPanel::make('support')
         ->path('/live-chat')
@@ -88,9 +90,7 @@ Inside the boot method of AppServiceProvider,register a panel with a custom rout
 
 ```
 
-        to register the dashboard
-        or the live support widget.
-
+        
 🧪 Testing
 We maintain a robust test suite using PHPUnit and Laravel Dusk to ensure stability across PHP and Laravel versions.
 
