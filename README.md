@@ -76,17 +76,17 @@ Setup reverb or pusher and you are good to go.
 
 
 🎨 Customization
-You can fine-tune the widget appearance directly through props:
 
-```html
-<livewire:anychat-widget 
-    height="500px" 
-    width="400px" 
-    variant="outline" 
-    primaryColor="#7c3aed"
-    adminColor="#f3f4f6"
-/>
-```
+Inside the boot method of AppServiceProvider,register a panel with a custom route,
+ \SaamMi\AnyChat\AnyChatPanel::make('support')
+        ->path('/live-chat')
+        ->allowEmojis()
+        ->allowFileUploads()
+        ->primaryColor('#ef4444')
+        ->register(); 
+
+        to register the dashboard
+        or the live support widget.
 
 🧪 Testing
 We maintain a robust test suite using PHPUnit and Laravel Dusk to ensure stability across PHP and Laravel versions.
