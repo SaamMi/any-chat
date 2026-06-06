@@ -13,6 +13,17 @@
     {{-- Render the dashboard directly without the centering flex wrapper --}}
     @livewire('anychat-dashboard')
 
+    <livewire:anychat-widget 
+    height="500px" 
+    width="400px"
+    variant="outline" 
+    primaryColor="#7c3aed"
+    adminColor="#f3f4f6"
+    
+    
+ :config=$config />
+/>
+
     @livewireScripts
 </body>
 </html>

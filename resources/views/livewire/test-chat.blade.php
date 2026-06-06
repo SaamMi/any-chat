@@ -16,8 +16,6 @@
 
 
  
-
- 
    
 
  
@@ -85,7 +83,14 @@
                             </svg>
                         </label>
                     @endif
-
+                    
+                        <div x-show="showPicker" 
+                         @click.away="showPicker = false" 
+                         class="absolute bottom-0 z-[10000]"
+                         style="display: none; right: calc(100% + 40px);"
+                         x-transition>
+                        <emoji-picker @emoji-click="addEmoji($event.detail.unicode)" class="light shadow-2xl"></emoji-picker>
+                    </div>
                     {{-- 2. Input --}}
                     <input type="text" x-model="message" @keydown.enter="sendChatMessage()" placeholder="Type here..." class="flex-1 text-sm border rounded-xl px-3 py-2 outline-none focus:border-blue-500">
 
@@ -100,6 +105,13 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                 </div>
+                 
+                     @error('message')
+                        <span class="text-red-500 text-[11px] mt-1 ml-2 font-medium animate-pulse">
+                            {{ $message }}
+                        </span>
+                    @enderror
+                
                 
                 {{-- Attachment Status --}}
                 @if($attachment)
@@ -200,6 +212,11 @@
             if (this.isOpen) this.$nextTick(() => this.scrollToBottom()); 
         },
 
+                addEmoji(emoji) {
+                    this.message += emoji; 
+                    this.showPicker = false; 
+                },
+
         scrollToBottom() { 
             if (this.$refs.messagePanel) {
                 this.$refs.messagePanel.scrollTop = this.$refs.messagePanel.scrollHeight; 
@@ -208,6 +225,6 @@
     }));
 });
 </script>
-     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 
 </div>

@@ -16,7 +16,7 @@ class Publicchat extends Component
     use WithFileUploads;
 
     public $persistenceMode = 'stateless';
-    public $allowUploads = false;
+    public $allowUploads = true;
     public $allowEmojis = false;
     public $attachment;
     public $config;
@@ -29,12 +29,14 @@ class Publicchat extends Component
     public $participantable_id;
     public $conversation_id;
 
-    public function mount($config)
+    public function mount($config = [])
     {
         $this->config = $config;
-        $this->allowUploads = $config['uploads'] ?? false;
+      //  $this->allowUploads = $config['uploads'] ?? false;
         $this->persistenceMode = $config['persistenceMode'] ?? 'stateless';
         $this->allowEmojis = $config['emojis'] ?? false;
+
+     
     }
 
     public function booted()
@@ -63,6 +65,8 @@ class Publicchat extends Component
 
     public function sendMessage()
     {
+
+     // dd($this->allowEmojis);
         $this->validate();
 
         if (!$this->sender) {
@@ -118,7 +122,7 @@ protected function performGuestHandshake()
             'participantable_type' => get_class($this->sender),
         ])->first();
 
-        //dd($participant);
+        
 
         $savedMessage = $conversation->messages()->create([
             'body' => strip_tags(trim($this->message)),
@@ -171,6 +175,12 @@ protected function performGuestHandshake()
 
     public function render()
     {
-        return view('anychat::livewire.test-chat');
+        //return view('anychat::livewire.test-chat',['config' => $this->config]);
+
+         return view('anychat::livewire.test-chat')->layout('anychat::panel-master', [
+        // This explicitly passes the component's config to your layout file!
+        'config' => $this->config 
+    ]);
     }
 }
+ 
