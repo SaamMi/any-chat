@@ -35,6 +35,7 @@ class PublicResponse extends Component
         $this->path = '/' . ($config['id'] ?? 'anychat');
         $this->initialChatId = $chatId;
         $this->initialChatType = $type;
+        $this->persistenceMode = $config['persistenceMode'] ?? 'stateless';
     }
 
 

@@ -37,6 +37,11 @@ class AnyChatServiceProvider extends ServiceProvider
                 __DIR__.'/../resources/views' => resource_path('views/vendor/anychat'),
             ], 'anychat-views');
         }
+        if ($this->app->runningInConsole()) {
+        $this->publishes([
+            __DIR__.'/../database/seeders' => database_path('seeders/vendor/anychat'),
+        ], 'anychat-seeders');
+    }
     }
 
     public function register()

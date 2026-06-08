@@ -11,7 +11,8 @@
   ],
   "autoload": {
     "psr-4": {
-      "SaamMi\\AnyChat\\": "src"
+      "SaamMi\\AnyChat\\": "src",
+      "SaamMi\\AnyChat\\Database\\Seeders\\": "database/seeders/"
     }
   },
     "autoload-dev": {

@@ -253,35 +253,35 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        async setActiveChat(id, type, name, shouldScroll = true) {
+      async setActiveChat(id, type, name, shouldScroll = true) {
     this.activeChatId = id;
 
-             // 1. Update the browser URL without reloading the page
+    // 1. Update the browser URL without reloading the page
     const newUrl = `{{ $this->path }}/${id}/${encodeURIComponent(type)}`;
     window.history.pushState({}, '', newUrl);
-            
-            if (!this.sessions[id]) {
-                this.sessions[id] = {
-                    metadata: { name: name, id: id, type: type },
-                    messages: []
-                };
-            }
+    
+    if (!this.sessions[id]) {
+        this.sessions[id] = {
+            metadata: { name: name, id: id, type: type },
+            messages: []
+        };
+    }
 
-            // Fetch history from Livewire
-            const history = await this.$wire.getHistory(id, type);
-            this.sessions[id].messages = history;
+    // 2. FIX: Call selectUser to set the Livewire state and get the history
+    const history = await this.$wire.selectUser(id, type);
 
+    this.sessions[id].messages = history;
 
     // 3. Update search results to match the newly clicked user
     this.syncCurrentChatResults();
-            
-            // Trigger Alpine reactivity
-            this.sessions = { ...this.sessions };
-            
-            if (shouldScroll) {
-                this.$nextTick(() => this.scrollToBottom(id));
-            }
-        },
+    
+    // Trigger Alpine reactivity
+    this.sessions = { ...this.sessions };
+    
+    if (shouldScroll) {
+        this.$nextTick(() => this.scrollToBottom(id));
+    }
+},
       
 
         async sendChatMessage() {

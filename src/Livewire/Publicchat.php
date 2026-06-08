@@ -41,7 +41,7 @@ class Publicchat extends Component
 
     public function booted()
     {
-        // 1. Identify Identity: Auth User takes priority over Guest Token[cite: 4]
+        // 1. Identify Identity: Auth User takes priority over Guest Token
         if (Auth::check()) {
             $this->sender = Auth::user();
             $this->participantable_id = $this->sender->getAuthIdentifier();
@@ -66,7 +66,7 @@ class Publicchat extends Component
     public function sendMessage()
     {
 
-     // dd($this->allowEmojis);
+     
         $this->validate();
 
         if (!$this->sender) {
