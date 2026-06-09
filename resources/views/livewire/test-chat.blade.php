@@ -1,7 +1,7 @@
 
 @props([
     'variant' => 'primary',
-    'color' => 'blue',
+    'color' => 'red',
     'height' => '450px',
     'width' => '380px',
     'primaryColor' => null,

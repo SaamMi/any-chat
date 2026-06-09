@@ -17,7 +17,7 @@
     height="500px" 
     width="400px"
     variant="outline" 
-    primaryColor="#7c3aed"
+    primaryColor="#8d55ed"
     adminColor="#f3f4f6"
     
     

@@ -1,7 +1,7 @@
 @props([
     'type' => 'xs',
-    'variant' => 'primary',
-    'color' => 'zinc',
+    'variant' => 'outline',
+    'color' => null,
     'height' => '450px',
     'width' => '380px',
     'primaryColor' => null,
@@ -37,7 +37,7 @@
     {{-- Sidebar --}}
     <div class="w-80 bg-slate-900 shadow-2xl border-r border-slate-800 flex flex-col z-40 shrink-0">
         <div class="p-6 border-b border-slate-800 bg-slate-900">
-            <h2 class="text-xl font-bold tracking-tight text-black">AnyChat Console</h2>
+            <h2 class="text-xl font-bold tracking-tight text-gray-600">AnyChat Console</h2>
         </div>
 
         <div class="flex-1 overflow-y-auto custom-scrollbar">
@@ -88,11 +88,13 @@
             </div>
 
             {{-- Guest Queue --}}
+
+               <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">Guest Users</div>
             <template x-for="chatId in Object.keys(sessions)" :key="chatId">
                 <button @click="setActiveChat(chatId, sessions[chatId].metadata.type || '', sessions[chatId].metadata.name)" 
                         :class="activeChatId === chatId ? 'bg-slate-800 border-l-4 border-blue-500' : 'hover:bg-slate-800/50'"
                         class="w-full text-left p-4 border-b border-slate-800 transition-all">
-                    <span class="font-bold text-sm text-slate-900" x-text="sessions[chatId].metadata.name"></span>
+                    <span class="font-bold text-sm text-zinc-400" x-text="sessions[chatId].metadata.name"></span>
                 </button>
             </template>
 
@@ -107,7 +109,7 @@
         
         <div class="flex flex-col text-left">
             {{-- Blade handles the text rendering directly --}}
-            <span class="font-bold text-sm text-white">{{ $user->name }}</span>
+            <span class="font-bold text-sm text-zinc-400">{{ $user->name }}</span>
        
         </div>
 
@@ -125,7 +127,7 @@
 
     {{-- Main Chat Area --}}
   {{-- Main Chat Area --}}
-    <div class="flex-1 flex flex-col relative h-full bg-white min-w-0 max-w-full overflow-hidden">
+    <div class="flex w-200 flex-col relative h-full min-w-0 max-w-full overflow-hidden">
         <template x-if="activeChatId">
             <div class="flex flex-col h-full w-full min-w-0">
                 
@@ -133,7 +135,7 @@
                 <div class="p-4 border-b flex justify-between items-center shadow-sm bg-white z-10 min-w-0">
                     <div class="flex items-center gap-3 min-w-0 w-full">
                         {{-- Added truncate so long names don't push the layout out --}}
-                        <span class="font-bold text-slate-800 truncate" x-text="sessions[activeChatId]?.metadata?.name || 'Loading...'"></span>
+                        <span class="font-bold text-slate-400 truncate" x-text="sessions[activeChatId]?.metadata?.name || 'Loading...'"></span>
                     </div>
                 </div>
 
@@ -148,7 +150,7 @@
                             {{-- Bubble Layout --}}
                             <div class="p-3 rounded-2xl shadow-sm max-w-[85%] msg-bubble transition-all duration-500 min-w-0"
                                  :class="(msg.auth == 1 || msg.is_admin) 
-                                        ? 'bg-dynamic-admin text-dynamic-admin rounded-tr-sm' 
+                                        ? 'bg-sla text-dynamic-admin rounded-tr-sm' 
                                         : '{{ $variant === "outline" ? "border-2 border-dynamic-user text-dynamic-user bg-transparent rounded-tl-sm" : "bg-dynamic-user text-white rounded-tl-sm" }}'">
                                 
                                 {{-- Added min-w-0 and break-words here --}}
