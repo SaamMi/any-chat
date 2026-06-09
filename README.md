@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="art/logo.png" alt="AnyChat Logo" width="200">
-</p>
+
 
 <h1 align="center">AnyChat 💬</h1>
 
