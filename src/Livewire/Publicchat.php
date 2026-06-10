@@ -161,7 +161,7 @@ protected function performGuestHandshake()
             'message' => strip_tags(trim($this->message)),
             'conversation_id' => $conversationId,
             'participantable_id' => $this->participantable_id,
-            'time' => now()->format('H:i'),
+            'time' => now()->format('g:i A'),
         ];
 
         broadcast(new NewMessage($payload))->toOthers();

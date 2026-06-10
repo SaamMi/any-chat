@@ -155,6 +155,7 @@
                                 
                                 {{-- Added min-w-0 and break-words here --}}
                                 <p x-text="msg.body || msg.message" class="text-sm break-words whitespace-pre-wrap min-w-0" :id="'msg-' + msg.id"></p>
+                    <span x-text="msg.time" class="text-[9px] opacity-60 mt-1 block" :class="(msg.auth == 1 || msg.is_admin) ? 'text-right' : 'text-left'"></span>
                             </div>
                             
                         </div>
@@ -302,7 +303,8 @@ document.addEventListener('alpine:init', () => {
             this.sessions[id].messages.push({ 
                 body: text, 
                 auth: 1, 
-                id: Date.now() 
+                id: Date.now(),
+                time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
             });
             
             // Trigger Alpine reactivity and scroll

@@ -120,7 +120,7 @@ public function performSearch($query)
             'message' => $msg->body,
             'chatId'  => $this->receiver->id, 
             'auth'    => 1, 
-            'time'    => now()->format('H:i'),
+            'time' => now()->format('g:i A'),
         ]);
 
         $this->reset('message');
@@ -138,6 +138,7 @@ public function performSearch($query)
                 'message'    => $msg->body,
                 'auth'       => $msg->participant_id === $this->authParticipant->id ? 1 : 0,
                 'senderName' => $msg->participant->participantable->name ?? 'User',
+                'time'       => $msg->created_at->format('g:i A'),
             ]);
     }
 

@@ -66,6 +66,11 @@
                                 ? 'background-color: {{ $adminColor ?? '#f1f5f9' }}; color: #1e293b; border-top-left-radius: 0;' 
                                 : 'background-color: {{ $primaryColor ?? '#2563eb' }}; color: #ffffff; border-top-right-radius: 0;'">
                             <p x-text="msg.message" class="text-sm"></p>
+                             <span x-text="msg.created_at" 
+                                   class="text-[9px] opacity-60 mt-1 block"
+                                   :class="Number(msg.auth) === 1 ? 'text-left' : 'text-right'"></span>
+
+
                         </div>
                     </div>
                 </template>
@@ -171,9 +176,16 @@
             let text = this.message;
             this.message = '';
             
+            const timeString = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+            // Add user message locally WITH the timestamp
             // Add user message locally
-            this.currentMessages = [...this.currentMessages, { message: text, auth: 0 }];
-            
+           this.currentMessages = [...this.currentMessages, { 
+                message: text, 
+                auth: 0,
+                created_at: timeString
+                }];
+           
             await this.$wire.set('message', text);
             await this.$wire.sendMessage();
             this.$nextTick(() => this.scrollToBottom());
@@ -197,10 +209,11 @@
                         ? Number(e.message.auth) === 1 
                         : true;
 
+                    const incomingTime = e.message?.time || e.time || new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
                     this.currentMessages = [...this.currentMessages, {
                         message: text,
                         auth: isFromAdmin ? 1 : 0,
-                        created_at: new Date().toISOString()
+                        created_at: incomingTime
                     }];
 
                     this.$nextTick(() => this.scrollToBottom());

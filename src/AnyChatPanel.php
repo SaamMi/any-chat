@@ -13,6 +13,7 @@ class AnyChatPanel
     protected bool $hasFileUploads = false;
     protected string $primaryColor = '#2563eb';
     protected string $mode = 'stateless';
+    protected bool $hasAuth = false;
 
     
     
@@ -56,7 +57,11 @@ class AnyChatPanel
         $this->hasFileUploads = $condition;
         return $this;
     }
-
+   public function allowAuth(bool $condition = true): self
+    {
+        $this->hasAuth = $condition;
+        return $this;
+    }
     public function primaryColor(string $color): self
     {
         $this->primaryColor = $color;
@@ -77,13 +82,20 @@ class AnyChatPanel
             'uploads' => $this->hasFileUploads,
             'color' => $this->primaryColor,
             'persistenceMode' => $this->mode,
+            'auth' => $this->hasAuth,
         ];
+//dd($this-hasAuth);
+        $middleware = ['web']; 
+    
+    if ($this->hasAuth) {
+        $middleware[] = 'auth';
+    }
 
         // Map the route directly to the Livewire component.
         // Optional parameters handle both the /anychat (index) and /anychat/{id}/{type} (show) routes.
         Route::get($this->path . '/{chatId?}/{type?}', \SaamMi\AnyChat\Livewire\PublicResponse::class)
             ->defaults('config', $config)
-            ->middleware(['web', 'auth'])
+            ->middleware($middleware)
             ->name("anychat.panel.{$this->id}");
     }
 
