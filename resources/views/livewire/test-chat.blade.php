@@ -171,25 +171,19 @@
             });
         },
 
-        async sendChatMessage() {
-            if (!this.message.trim()) return;
-            let text = this.message;
-            this.message = '';
-            
-            const timeString = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
-            // Add user message locally WITH the timestamp
-            // Add user message locally
-           this.currentMessages = [...this.currentMessages, { 
-                message: text, 
-                auth: 0,
-                created_at: timeString
-                }];
-           
-            await this.$wire.set('message', text);
-            await this.$wire.sendMessage();
-            this.$nextTick(() => this.scrollToBottom());
-        },
+      async sendChatMessage() {
+    if (!this.message.trim()) return;
+    let text = this.message;
+    this.message = '';
+    
+    // Add user message locally to keep UI responsive
+    this.currentMessages = [...this.currentMessages, { message: text, auth: 0 }];
+    
+    // CRITICAL FIX: Pass the text and conversation identity straight to the backend call
+    await this.$wire.sendMessage(text, this.conversation_id);
+    
+    this.$nextTick(() => this.scrollToBottom());
+},
 
         subscribe(id) {
             if (!id || !window.Echo) return;

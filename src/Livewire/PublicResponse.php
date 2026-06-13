@@ -86,26 +86,35 @@ public function generateAiReply($chatId)
 
 
 public function performSearch($query)
-{
-    // Return empty if search term is too short
-    if (strlen($query) < 3) return [];
+    {
+        // Return empty if search term is too short
+        if (strlen($query) < 3) return [];
 
-    // Search for messages matching the query
-    return \SaamMi\AnyChat\Models\Message::where('body', 'like', '%' . $query . '%')
-        ->with(['participant.participantable'])
-        ->latest()
-        ->get()
-        ->map(function($msg) {
-            return [
-                'id' => $msg->id,
-                'body' => $msg->body,
-                'sender' => $msg->participant->participantable->name ?? 'User',
-                // Map the IDs needed for jumpToMessage logic
-                'chatId' => $msg->participant->participantable_id,
-                'chatType' => $msg->participant->participantable_type,
-            ];
-        })->toArray();
-}
+        $admin = \Illuminate\Support\Facades\Auth::user();
+
+        // Search for messages matching the query, loading the conversation participants
+        return \SaamMi\AnyChat\Models\Message::where('body', 'like', '%' . $query . '%')
+            ->with(['participant.participantable', 'conversation.participants'])
+            ->latest()
+            ->get()
+            ->map(function($msg) use ($admin) {
+                
+                // 1. Find the Chat Partner (The participant who is NOT the admin)
+                $partner = $msg->conversation->participants->first(function($p) use ($admin) {
+                    return !($p->participantable_id == $admin->id && $p->participantable_type == get_class($admin));
+                });
+
+                return [
+                    'id' => $msg->id,
+                    'body' => $msg->body,
+                    'sender' => $msg->participant->participantable->name ?? 'User',
+                    
+                    // 2. CRITICAL FIX: Assign the result to the Partner's ID so the sidebar highlights the correct chat
+                    'chatId' => $partner ? $partner->participantable_id : $msg->participant->participantable_id,
+                    'chatType' => $partner ? $partner->participantable_type : $msg->participant->participantable_type,
+                ];
+            })->toArray();
+    }
     public function sendMessage($text)
     {
         if (!$this->activeConversation || !$this->authParticipant) return;
@@ -143,13 +152,39 @@ public function performSearch($query)
     }
 
     
-    public function render()
+  public function render()
     {
+        $guestConversations = [];
+
+        // Check if the conversation model exists before querying
+        if (class_exists('\SaamMi\AnyChat\Models\Conversation')) {
+            $guestConversations = \SaamMi\AnyChat\Models\Conversation::with(['participants.participantable'])
+                ->latest('updated_at')
+                ->get()
+                ->filter(function ($conv) {
+                    // Filter for conversations containing a guest participant
+                    return $conv->participants->contains(fn($p) => $p->participantable_type !== \App\Models\User::class);
+                })
+                ->map(function ($conv) {
+                    // Locate the guest participant in this conversation
+                    $guest = $conv->participants->first(fn($p) => $p->participantable_type !== \App\Models\User::class);
+                    
+                    return [
+                        'id'   => $guest->participantable_id, // <-- CRITICAL FIX: Pass the Guest Model ID, NOT $conv->id
+                        'name' => $guest->participantable->name ?? 'Guest #' . substr($guest->participantable_id, 0, 6),
+                        'type' => $guest->participantable_type ?? 'SaamMi\AnyChat\Models\Guest',
+                    ];
+                })
+                ->unique('id') // Prevent duplicate sidebar rows for the same guest
+                ->values()
+                ->toArray();
+        }
+
         return view('anychat::livewire.publicresponse', [
-            'users' => \App\Models\User::all(),
+            'users'              => \App\Models\User::all(),
+            'guestConversations' => $guestConversations,
         ])->layout('anychat::panel-master', [
-        // This explicitly passes the component's config to your layout file!
-        'config' => $this->config 
-    ]);
+            'config' => $this->config 
+        ]);
     }
 }

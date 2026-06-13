@@ -89,14 +89,27 @@
 
             {{-- Guest Queue --}}
 
-               <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">Guest Users</div>
-            <template x-for="chatId in Object.keys(sessions)" :key="chatId">
-                <button @click="setActiveChat(chatId, sessions[chatId].metadata.type || '', sessions[chatId].metadata.name)" 
-                        :class="activeChatId === chatId ? 'bg-slate-800 border-l-4 border-blue-500' : 'hover:bg-slate-800/50'"
-                        class="w-full text-left p-4 border-b border-slate-800 transition-all">
-                    <span class="font-bold text-sm text-zinc-400" x-text="sessions[chatId].metadata.name"></span>
-                </button>
-            </template>
+             {{-- Guest Queue --}}
+            <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">Guest Users</div>
+            
+            {{-- Poll every 15 seconds to fetch incoming new guest chat sessions seamlessly --}}
+            <div wire:poll.15s class="flex flex-col">
+                @foreach($guestConversations as $guest)
+                    <button @click="setActiveChat('{{ $guest['id'] }}', '{{ addslashes($guest['type']) }}', '{{ addslashes($guest['name']) }}')" 
+                            :class="activeChatId == '{{ $guest['id'] }}' ? 'bg-slate-800 border-l-4 border-blue-500' : 'hover:bg-slate-800/50'"
+                            class="w-full flex items-center justify-between p-4 border-b border-slate-800 transition-all text-left">
+                            
+                        <span class="font-bold text-sm text-zinc-400">{{ $guest['name'] }}</span>
+
+                        {{-- Search Result Badge matching registered users layout --}}
+                        <div x-cloak 
+                             x-show="getMatchCount('{{ $guest['id'] }}') > 0" 
+                             class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                             <span x-text="getMatchCount('{{ $guest['id'] }}')"></span>
+                        </div>
+                    </button>
+                @endforeach
+            </div>
 
             <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">Registered Users</div>
           
@@ -150,7 +163,7 @@
                             {{-- Bubble Layout --}}
                             <div class="p-3 rounded-2xl shadow-sm max-w-[85%] msg-bubble transition-all duration-500 min-w-0"
                                  :class="(msg.auth == 1 || msg.is_admin) 
-                                        ? 'bg-sla text-dynamic-admin rounded-tr-sm' 
+                                        ? 'bg-dynamic-admin text-dynamic-admin rounded-tr-sm' 
                                         : '{{ $variant === "outline" ? "border-2 border-dynamic-user text-dynamic-user bg-transparent rounded-tl-sm" : "bg-dynamic-user text-white rounded-tl-sm" }}'">
                                 
                                 {{-- Added min-w-0 and break-words here --}}
@@ -256,7 +269,7 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-      async setActiveChat(id, type, name, shouldScroll = true) {
+    async setActiveChat(id, type, name, shouldScroll = true) {
     this.activeChatId = id;
 
     // 1. Update the browser URL without reloading the page
@@ -270,22 +283,52 @@ document.addEventListener('alpine:init', () => {
         };
     }
 
-    // 2. FIX: Call selectUser to set the Livewire state and get the history
+    // 2. Call selectUser to set the Livewire state and get the history
     const history = await this.$wire.selectUser(id, type);
-
     this.sessions[id].messages = history;
 
     // 3. Update search results to match the newly clicked user
     this.syncCurrentChatResults();
     
-    // Trigger Alpine reactivity
+    // 4. REAL-TIME EVENT LISTENER (FIXES ECHO LOOP)
+    // Unsubscribe from any previously monitored guest channel to avoid stacking listeners
+    if (window.currentEchoChannel) {
+        window.Echo.leave(window.currentEchoChannel);
+    }
+
+    // Bind to the unique channel for this specific guest/user conversation
+    window.currentEchoChannel = `chat.${id}`; 
+    window.Echo.channel(window.currentEchoChannel)
+        .listen('.message.new', (e) => {
+            // Extract payload smoothly whether wrapped inside an object or flat
+            let data = e.message || e;
+
+            // CRITICAL FIX: If auth is 1, it means the admin sent it.
+            // Ignore it entirely since sendChatMessage() already put it on screen.
+            if (data.auth && Number(data.auth) === 1) {
+                return; 
+            }
+
+            // This is a authentic inbound message from the guest. Push it!
+            this.sessions[id].messages.push({
+                body: data.message || data.body || data.content,
+                auth: 0, // Force Guest alignment
+                id: data.id || Date.now(),
+                time: data.time || new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+            });
+
+            // Trigger reactivity updates
+            this.sessions = { ...this.sessions };
+            this.$nextTick(() => this.scrollToBottom(id));
+        });
+
+    // Trigger Alpine reactivity for initial load
     this.sessions = { ...this.sessions };
     
     if (shouldScroll) {
         this.$nextTick(() => this.scrollToBottom(id));
     }
 },
-      
 
         async sendChatMessage() {
             if (!this.message.trim() || !this.activeChatId) return;
@@ -338,6 +381,8 @@ async performSearch(query) {
     
     // 1. Fetch all matches globally
     const raw = await this.$wire.performSearch(query);
+
+    console.log(raw);
     this.allResults = Array.isArray(raw) ? raw : Object.values(raw);
     
     // 2. Immediately filter for the current chat if one is open
@@ -360,6 +405,8 @@ syncCurrentChatResults() {
 getMatchCount(id) {
     // Returns the number of search matches for a specific user ID
     if (!this.searchQuery || this.searchQuery.length < 3) return 0;
+
+   
     return this.allResults.filter(r => r.chatId == id).length;
 },
 
@@ -383,6 +430,8 @@ getMatchCount(id) {
         
         
         init() {
+
+         
     const saved = localStorage.getItem('anychat_admin_sessions');
     if (saved) {
         try { 

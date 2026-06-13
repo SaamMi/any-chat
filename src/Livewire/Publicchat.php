@@ -1,4 +1,5 @@
 <?php
+
 namespace SaamMi\AnyChat\Livewire;
 
 use Illuminate\Support\Facades\Crypt;
@@ -20,7 +21,7 @@ class Publicchat extends Component
     public $allowEmojis = false;
     public $attachment;
     public $config;
-    public $senderName = 'Guest'; // Default identity
+    public $senderName = 'Guest'; 
 
     #[Validate('required|string|max:1000|min:2')]
     public $message;
@@ -32,11 +33,8 @@ class Publicchat extends Component
     public function mount($config = [])
     {
         $this->config = $config;
-      //  $this->allowUploads = $config['uploads'] ?? false;
         $this->persistenceMode = $config['persistenceMode'] ?? 'stateless';
         $this->allowEmojis = $config['emojis'] ?? false;
-
-     
     }
 
     public function booted()
@@ -49,6 +47,7 @@ class Publicchat extends Component
             return;
         }
 
+        // Try to hydrate from header (mostly works on initial load)
         $token = request()->header('X-AnyChat-Token');
         if ($token) {
             try {
@@ -63,57 +62,66 @@ class Publicchat extends Component
         }
     }
 
-    public function sendMessage()
+    // Accept the explicitly passed variables from the Alpine frontend
+    public function sendMessage($text = null, $guestId = null)
     {
+        // Hydrate Guest identity if Livewire dropped the state on this specific request
+        if (!Auth::check() && $guestId && !$this->sender) {
+            $this->participantable_id = $guestId;
+            $this->sender = Guest::find($guestId);
+            if ($this->sender) {
+                $this->senderName = 'Guest ' . substr($guestId, 0, 4);
+            }
+        }
 
-     
-        $this->validate();
-
+        // If it's a completely new visitor, perform handshake to generate an ID
         if (!$this->sender) {
             $this->performGuestHandshake();
         }
 
         if ($this->persistenceMode === 'stateful') {
-            $this->handleStatefulStorage();
+            $this->handleStatefulStorage($text);
         } else {
-            $this->handleStatelessBroadcast();
+            $this->handleStatelessBroadcast($text);
         }
 
         $this->reset('message');
     }
-protected function performGuestHandshake()
-{
-    if (!$this->participantable_id) {
-        $this->participantable_id = bin2hex(random_bytes(16));
-        $this->conversation_id = $this->participantable_id; 
 
-        // 1. Actually create the sender model in the database
-        $this->sender = Guest::create([
-            'id' => $this->participantable_id
-        ]);
+    protected function performGuestHandshake()
+    {
+        if (!$this->participantable_id) {
+            $this->participantable_id = bin2hex(random_bytes(16));
+            $this->conversation_id = $this->participantable_id; 
 
-        // 2. Set the display name immediately
-        $this->senderName = 'Guest ' . substr($this->participantable_id, 0, 4);
+            // 1. Create the sender model in the database
+            $this->sender = Guest::create([
+                'id' => $this->participantable_id
+            ]);
 
-        $token = Crypt::encryptString(json_encode([
-            'participantable_id' => $this->participantable_id,
-            'participantable_type' => 'Guest',
-            'conversation_id' => $this->conversation_id,
-            'exp' => now()->addDays(7)->timestamp,
-        ]));
+            // 2. Set the display name immediately
+            $this->senderName = 'Guest ' . substr($this->participantable_id, 0, 4);
 
-        $this->dispatch('token-handshake', 
-            token: $token, 
-            chatId: $this->participantable_id 
-        );
+            $token = Crypt::encryptString(json_encode([
+                'participantable_id' => $this->participantable_id,
+                'participantable_type' => 'Guest',
+                'conversation_id' => $this->conversation_id,
+                'exp' => now()->addDays(7)->timestamp,
+            ]));
+
+            $this->dispatch('token-handshake', 
+                token: $token, 
+                chatId: $this->participantable_id 
+            );
+        }
     }
-}
 
-    protected function handleStatefulStorage()
+    protected function handleStatefulStorage($text)
     {
         $targetId = $this->config['target_id'] ?? 1;
         $targetType = $this->config['target_type'] ?? 'App\Models\User';
 
+        // $this->sender is now guaranteed to exist, safely call trait method
         $conversation = $this->sender->getDirectConversationWith($targetId, $targetType);
 
         $participant = Participant::where([
@@ -122,10 +130,11 @@ protected function performGuestHandshake()
             'participantable_type' => get_class($this->sender),
         ])->first();
 
-        
+        // Prioritize the raw text passed from the Alpine function
+        $messageText = strip_tags(trim($text ?? $this->message));
 
         $savedMessage = $conversation->messages()->create([
-            'body' => strip_tags(trim($this->message)),
+            'body' => $messageText,
             'participant_id' => $participant->id,
             'type' => 'text',
         ]);
@@ -134,7 +143,7 @@ protected function performGuestHandshake()
             $this->processAttachment($savedMessage);
         }
 
-        $this->broadcastMessage($conversation->id);
+        $this->broadcastMessage($conversation->id, $messageText);
     }
 
     protected function processAttachment($message)
@@ -150,15 +159,18 @@ protected function performGuestHandshake()
         $this->attachment = null;
     }
 
-    protected function handleStatelessBroadcast()
+    protected function handleStatelessBroadcast($text)
     {
-        $this->broadcastMessage($this->conversation_id);
+        $messageText = strip_tags(trim($text ?? $this->message));
+        
+        // Broadcast directly to the guest's unique channel ID
+        $this->broadcastMessage($this->conversation_id ?? $this->participantable_id, $messageText);
     }
 
-    protected function broadcastMessage($conversationId)
+    protected function broadcastMessage($conversationId, $text)
     {
         $payload = [
-            'message' => strip_tags(trim($this->message)),
+            'message' => $text,
             'conversation_id' => $conversationId,
             'participantable_id' => $this->participantable_id,
             'time' => now()->format('g:i A'),
@@ -175,12 +187,8 @@ protected function performGuestHandshake()
 
     public function render()
     {
-        //return view('anychat::livewire.test-chat',['config' => $this->config]);
-
-         return view('anychat::livewire.test-chat')->layout('anychat::panel-master', [
-        // This explicitly passes the component's config to your layout file!
-        'config' => $this->config 
-    ]);
+        return view('anychat::livewire.test-chat')->layout('anychat::panel-master', [
+            'config' => $this->config 
+        ]);
     }
 }
- 
