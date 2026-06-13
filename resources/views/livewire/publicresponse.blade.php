@@ -382,7 +382,7 @@ async performSearch(query) {
     // 1. Fetch all matches globally
     const raw = await this.$wire.performSearch(query);
 
-    console.log(raw);
+    
     this.allResults = Array.isArray(raw) ? raw : Object.values(raw);
     
     // 2. Immediately filter for the current chat if one is open
