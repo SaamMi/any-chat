@@ -180,11 +180,23 @@ public function performSearch($query)
                 ->toArray();
         }
 
-        return view('anychat::livewire.publicresponse', [
+        $view = view('anychat::livewire.publicresponse', [
             'users'              => \App\Models\User::all(),
             'guestConversations' => $guestConversations,
-        ])->layout('anychat::panel-master', [
+            
+        ]);
+
+        // Only explicitly set the layout for the standalone route
+        if (!request()->routeIs('chatresponse')) {
+            // Use your package's namespace to load the bundled clean layout
+            $view->layout('anychat::panel-master', [
             'config' => $this->config 
         ]);
+        }
+
+        // If it's the internal route, Livewire will naturally fall back 
+        // to the host app's default components.layouts.app
+        return $view;
+  
     }
 }

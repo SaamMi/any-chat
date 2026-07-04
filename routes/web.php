@@ -26,8 +26,13 @@ Route::get('/cha', Publicchat::class)
 ->middleware(CustomCookie::class); */
 
 // });
+Route::middleware(['auth'])->group(function () { 
+     Route::get('/chatresponse',PublicResponse::class)
+      ->name('chatresponse');
+});
 
-Route::get('/chatresponse', PublicResponse::class);
+
+
 
 Route::get('/fetch-messages', [Publicchat::class, 'msg'])
     ->name('fetch-messages');

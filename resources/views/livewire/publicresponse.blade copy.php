@@ -32,10 +32,10 @@
     ]);
 @endphp
 
-<div x-data="chatAdmin" class="flex h-screenz w-full bg-slate-50 overflow-hidden anychat-container">
+<div x-data="chatAdmin" class="flex h-screen w-full bg-slate-50 overflow-hidden anychat-container">
     
     {{-- Sidebar --}}
-    <div class="w-80 bg-slate-900 shadow-2xl border-r border-slate-800 flex flex-col z-10 shrink-0">
+    <div class="w-80 bg-slate-900 shadow-2xl border-r border-slate-800 flex flex-col z-40 shrink-0">
         <div class="p-6 border-b border-slate-800 bg-slate-900">
             <h2 class="text-xl font-bold tracking-tight text-gray-600">AnyChat Console</h2>
         </div>
@@ -72,7 +72,7 @@
                 {{-- Search Dropdown --}}
                 <div x-show="searchQuery.length > 2 && results.length > 0" 
                      x-transition
-                     class="mt-2 max-h-48 overflow-y-auto bg-white rounded-lg shadow-xl absolute w-64 z-20 border border-slate-200">
+                     class="mt-2 max-h-48 overflow-y-auto bg-white rounded-lg shadow-xl absolute w-64 z-[100] border border-slate-200">
                     <template x-for="(result, index) in results" :key="result.id">
                         <button @click="activeResultIndex = index; jumpToMessage(result)" 
                                 :class="activeResultIndex === index ? 'bg-blue-50' : ''"
@@ -235,7 +235,6 @@
     [x-cloak] { display: none !important; }
 </style>
 </div>
-
 
 {{-- Logic --}}
 <script>
@@ -433,16 +432,6 @@ getMatchCount(id) {
         
         init() {
 
-
-         Echo.channel('anychat-support')
-                .listen('.user.sent', (e) => {
-
-
-
-
-
-                
-};
          
     const saved = localStorage.getItem('anychat_admin_sessions');
     if (saved) {

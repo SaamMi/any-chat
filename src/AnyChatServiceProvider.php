@@ -17,7 +17,10 @@ class AnyChatServiceProvider extends ServiceProvider
 {
     public function boot()
     {
+        Route::middleware('web')->group(function () {
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+    });
+        
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'anychat');
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
@@ -42,6 +45,25 @@ class AnyChatServiceProvider extends ServiceProvider
             __DIR__.'/../database/seeders' => database_path('seeders/vendor/anychat'),
         ], 'anychat-seeders');
     }
+
+    $filePath = base_path('resources/views/layouts/app/sidebar.blade.php');
+
+if (file_exists($filePath)) {
+    $content = file_get_contents($filePath);
+if (! str_contains($content,"{{ __('chat') }}")) {
+
+    $search = '<flux:spacer />';
+
+    $replace = <<<EOT
+<a href="{{ route('chatresponse') }}"> {{ __('chat') }} </a>
+
+            <flux:spacer />
+EOT;
+
+    $newContent = str_replace($search, $replace, $content);
+    file_put_contents($filePath, $newContent);
+}
+}
     }
 
     public function register()
