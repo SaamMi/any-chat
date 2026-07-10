@@ -32,10 +32,10 @@
     ]);
 @endphp
 
-<div x-data="chatAdmin" class="flex h-screenz w-full bg-slate-50 overflow-hidden anychat-container">
+<div x-data="chatAdmin" class="flex h-screen w-full bg-slate-50 overflow-hidden anychat-container">
     
     {{-- Sidebar --}}
-    <div class="w-80 bg-slate-900 shadow-2xl border-r border-slate-800 flex flex-col z-10 shrink-0">
+    <div class="md:w-[220px] bg-slate-900 shadow-2xl border-r border-slate-800 flex flex-col z-10 shrink-0">
         <div class="p-6 border-b border-slate-800 bg-slate-900">
             <h2 class="text-xl font-bold tracking-tight text-gray-600">AnyChat Console</h2>
         </div>
@@ -300,7 +300,7 @@ document.addEventListener('alpine:init', () => {
 
     // Bind to the unique channel for this specific guest/user conversation
     window.currentEchoChannel = `chat.${id}`; 
-    window.Echo.channel(window.currentEchoChannel)
+    window.Echo.private(window.currentEchoChannel)
         .listen('.message.new', (e) => {
             // Extract payload smoothly whether wrapped inside an object or flat
             let data = e.message || e;
@@ -442,7 +442,7 @@ getMatchCount(id) {
 
 
                 
-};
+});
          
     const saved = localStorage.getItem('anychat_admin_sessions');
     if (saved) {

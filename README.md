@@ -72,6 +72,13 @@ Ensure your layout file includes the required Livewire and Alpine.js assets:
 Setup reverb or pusher and you are good to go.
 
 
+To seed the test data,run
+
+```bash
+php artisan db:seed --class="SaamMi\AnyChat\Database\Seeders\AnyChatSeeder"
+```
+
+
 
 🎨 Customization
 

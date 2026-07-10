@@ -19,6 +19,9 @@ class AnyChatServiceProvider extends ServiceProvider
     {
         Route::middleware('web')->group(function () {
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+          /* Load channel routes */
+        $this->loadRoutesFrom(__DIR__.'/../routes/channels.php');
+
     });
         
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'anychat');

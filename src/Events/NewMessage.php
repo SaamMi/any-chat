@@ -2,7 +2,7 @@
 
 namespace SaamMi\AnyChat\Events;
 
-use Illuminate\Broadcasting\Channel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 // 1. Change this import
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -29,7 +29,7 @@ class NewMessage implements ShouldBroadcastNow
                   ?? 'default-fallback';
 
         return [
-            new Channel('chat.' . $channelId),
+            new PrivateChannel('chat.' . $channelId),
         ];
     }
 
