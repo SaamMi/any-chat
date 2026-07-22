@@ -38,7 +38,7 @@ return new class extends Migration
             $table->timestamps();
 
             // Unique constraint on conversation_id, participantable_id, and participantable_type
-            $table->unique(['conversation_id', 'participantable_id', 'participantable_type'], 'conv_part_id_type_unique');
+            $table->unique(['conversation_id', 'participantable_id', 'participantable_type']);
 
             $table->index(['role']);
         });

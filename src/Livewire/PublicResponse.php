@@ -88,7 +88,7 @@ public function generateAiReply($chatId)
 public function performSearch($query)
     {
         // Return empty if search term is too short
-        if (strlen($query) < 3) return [];
+        if (strlen($query) < 1) return [];
 
         $admin = \Illuminate\Support\Facades\Auth::user();
 
@@ -97,6 +97,10 @@ public function performSearch($query)
             ->with(['participant.participantable', 'conversation.participants'])
             ->latest()
             ->get()
+              ->filter(function ($msg) use ($admin) {
+                    // Filter for conversations containing an auth participant
+                    return $msg->conversation->participants->contains(fn($p) => $p->participantable_id == $admin->id);
+                })
             ->map(function($msg) use ($admin) {
                 
                 // 1. Find the Chat Partner (The participant who is NOT the admin)
@@ -115,6 +119,7 @@ public function performSearch($query)
                 ];
             })->toArray();
     }
+
     public function sendMessage($text)
     {
         if (!$this->activeConversation || !$this->authParticipant) return;
