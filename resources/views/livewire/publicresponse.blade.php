@@ -33,12 +33,20 @@
 @endphp
 
 <div x-data="chatAdmin" class="flex h-screen w-full bg-slate-50 overflow-hidden anychat-container">
-    
+
+ 
     {{-- Sidebar --}}
     <div class="md:w-[220px] bg-slate-900 shadow-2xl border-r border-slate-800 flex flex-col z-10 shrink-0">
         <div class="p-6 border-b border-slate-800 bg-slate-900">
             <h2 class="text-xl font-bold tracking-tight text-gray-600">AnyChat Console</h2>
         </div>
+
+         <button @click="createGroup" class="text-white text-[10px]"> + Create group chat 
+
+         </button>
+
+       
+        
 
         <div class="flex-1 overflow-y-auto custom-scrollbar">
             <div class="p-4 bg-slate-800/50 text-[10px] font-bold text-slate-500 uppercase tracking-widest flex justify-between items-center">
@@ -135,6 +143,9 @@
         </div>
     </button>
 @endforeach
+
+   
+    
         </div>
     </div>
 
@@ -200,14 +211,59 @@
                 </div>
             </div>
         </template>
-        
+       
+ 
         {{-- Empty State --}}
         <div x-show="!activeChatId" class="flex-1 flex items-center justify-center text-slate-400 bg-slate-50 min-w-0">
-            <div class="text-center">
+          
+        <div class="text-center">
                 <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <p>Select a conversation to start messaging</p>
             </div>
+
         </div>
+
+
+        <div x-show="displayGroupModal" 
+             
+             class="mt-2 max-h-72 overflow-y-auto bg-white rounded-lg shadow-xl absolute w-full z-20 border border-slate-200">
+           
+            <div class="wire:ignore p-4 border-b border-slate-200 bg-slate-50">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Add users</label>
+                
+                <div class="relative">
+                    <input type="text" 
+                           x-model="userSearchQuery" 
+                           @input.debounce.500ms="performUserSearch(userSearchQuery)"
+                           placeholder="Find users..." 
+                           class="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg pl-3 pr-20 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                
+                </div>
+
+                <div x-show="userSearchQuery.length > 2 && allResults.length > 0" 
+                     x-transition
+                     class="mt-2 max-h-48 overflow-y-auto bg-white rounded-lg shadow-xl w-full z-20 border border-slate-200">
+                    <template x-for="(result, index) in allResults" :key="result.id">
+                      
+                          
+                            <div class="flex justify-between">
+                               
+                            
+                            <div class="text-slate-600 text-xs truncate" x-text="result.name"></div>
+                            </div>
+                    </template>
+                </div>
+
+
+
+
+        </div>
+            
+    
+    
+    </div>
+        
+    
     </div>
 
     {{-- Component Styles --}}
@@ -246,10 +302,12 @@ document.addEventListener('alpine:init', () => {
         message: '',
         results: [],
         searchQuery: '',
+        userSearchQuery: '',
         activeResultIndex: -1, 
         isDrafting: false,
         allResults: [],
         activeNotifications: [],
+        displayGroupModal: false,
 
         async draftWithAI() {
             if (!this.activeChatId || this.isDrafting) return;
@@ -270,6 +328,10 @@ document.addEventListener('alpine:init', () => {
                 this.isDrafting = false;
             }
         },
+
+    createGroup(){
+    this.displayGroupModal = true;
+    },
 
     async setActiveChat(id, type, name, shouldScroll = true) {
     this.activeChatId = id;
@@ -390,6 +452,22 @@ async performSearch(query) {
     // 2. Immediately filter for the current chat if one is open
     this.syncCurrentChatResults();
 },
+async performUserSearch(userSearchQuery) {
+    if (userSearchQuery.length < 3) {
+        this.allResults = [];
+        return;
+}
+    const raw = await this.$wire.performUserSearch(userSearchQuery);
+
+    console.log(raw);
+
+    
+    this.allResults = Array.isArray(raw) ? raw : Object.values(raw);
+
+},
+
+
+
         
 
 syncCurrentChatResults() {

@@ -11,6 +11,9 @@ use SaamMi\AnyChat\Traits\InteractsWithConversations;
 use App\Models\User;
 use Livewire\Attributes\Layout;
 use SaamMi\AnyChat\Contracts\AiCopilot;
+use App\Models\Team;
+use App\Enums\TeamRole;
+
 
 class PublicResponse extends Component
 {
@@ -27,6 +30,7 @@ class PublicResponse extends Component
     // Properties to catch the URL parameters
     public $initialChatId;
     public $initialChatType;
+    public array $rows = [];
 
     // Livewire automatically injects the route parameters and defaults here
     public function mount($config = [], $chatId = null, $type = null)
@@ -36,6 +40,13 @@ class PublicResponse extends Component
         $this->initialChatId = $chatId;
         $this->initialChatType = $type;
         $this->persistenceMode = $config['persistenceMode'] ?? 'stateless';
+
+       /* $this->rows = $this->team->users()->get()->map(function (User $user) {
+            return [
+                'user_id' => $user->id,
+                'role' => $user->pivot->role ?? null,
+            ];
+        })->toArray();    */ 
     }
 
 
@@ -118,6 +129,18 @@ public function performSearch($query)
                     'chatType' => $partner ? $partner->participantable_type : $msg->participant->participantable_type,
                 ];
             })->toArray();
+    }
+
+    public function performUserSearch($query)
+    {
+
+
+    
+     
+   return \App\Models\User::where('name', 'like', '%' . $query . '%')->get()->toArray();
+
+
+
     }
 
     public function sendMessage($text)
