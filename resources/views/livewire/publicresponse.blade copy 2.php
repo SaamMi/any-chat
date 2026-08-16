@@ -243,15 +243,41 @@
                 <div x-show="userSearchQuery.length > 2 && allResults.length > 0" 
                      x-transition
                      class="mt-2 max-h-48 overflow-y-auto bg-white rounded-lg shadow-xl w-full z-20 border border-slate-200">
-                    <template x-for="(result, index) in allResults" :key="result.id">
-                      
-                          
-                            <div class="flex justify-between">
-                               
-                            
-                            <div class="text-slate-600 text-xs truncate" x-text="result.name"></div>
-                            </div>
-                    </template>
+                  <form wire:submit.prevent="save">
+        
+        <div class="space-y-4 mb-6">
+            <!-- Loop through the $rows array initialized in mount() -->
+          <div class="w-full mb-6">
+    <label class="block text-sm font-medium text-slate-700 mb-2">Select Users</label>
+    
+    <select 
+        multiple 
+        wire:model="selectedUsers" 
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-32"
+    >
+        @foreach($rows as $row)
+            <option value="{{ $row['user_id'] }}">{{ $row['name'] }}</option>
+        @endforeach
+    </select>
+</div>
+        </div>
+         <div class="flex justify-between mt-4">
+            <!-- Button to dynamically add a new user/role row -->
+         
+
+            <!-- Save transaction -->
+            <button 
+                type="submit" 
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            >
+                Save 
+            </button>
+        </div>
+
+    </form>
+    <div class="mt-4 p-4 bg-slate-800 text-green-400 rounded-lg font-mono text-xs overflow-auto max-h-48">
+    @dump($rows)
+</div>
                 </div>
 
 

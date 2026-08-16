@@ -13,6 +13,7 @@ use Livewire\Attributes\Layout;
 use SaamMi\AnyChat\Contracts\AiCopilot;
 use App\Models\Team;
 use App\Enums\TeamRole;
+use Livewire\Attributes\Computed;
 
 
 class PublicResponse extends Component
@@ -30,27 +31,65 @@ class PublicResponse extends Component
     // Properties to catch the URL parameters
     public $initialChatId;
     public $initialChatType;
-    public array $rows = [];
+    //public array $rows = [];
+    public $searchableUsers;
+    //public array $selectedUsers = [];
+    public $rows = [['user_id' => null, 'name' => '', 'role' => 'member']];
+
+
+   
+   
 
     // Livewire automatically injects the route parameters and defaults here
-    public function mount($config = [], $chatId = null, $type = null)
+    public function mount($config = [], User $user)
     {
         $this->config = $config;
         $this->path = '/' . ($config['id'] ?? 'anychat');
-        $this->initialChatId = $chatId;
-        $this->initialChatType = $type;
+        //$this->initialChatId = $chatId;
+        //$this->initialChatType = $type;
         $this->persistenceMode = $config['persistenceMode'] ?? 'stateless';
-
-       /* $this->rows = $this->team->users()->get()->map(function (User $user) {
+        
+      // $user = Auth::user();
+     /*  $this->rows = $user->currentTeam->members()->get()->map(function (User $user) {
             return [
                 'user_id' => $user->id,
-                'role' => $user->pivot->role ?? null,
+                'name' => $user->name,
+                //'role' => $user->pivot->role ?? null,
             ];
-        })->toArray();    */ 
+        })->toArray();   */
+
+    //$this->searchableUsers = $user->currentTeam->members()->get()->toArray();
+
+     //dd($this->rows);
     }
 
 
-  
+
+
+ public function searchAvailableUsers($searchQuery)
+{
+    if (strlen($searchQuery) < 2) {
+        return [];
+    }
+
+     $user = Auth::user();
+      
+    return $user->currentTeam->members()
+        ->where('name', 'like', '%' . $searchQuery . '%')
+        //->select('name')
+        //->take(5)
+        ->get()
+        ->toArray(); 
+     
+   
+
+    // Adjust the model namespace and query constraints as needed for your app
+   /* return \App\Models\User::where('name', 'like', '%' . $searchQuery . '%')
+        ->select('id', 'name')
+        ->take(5)
+        ->get()
+        ->toArray(); */
+} 
 
 public function generateAiReply($chatId)
 {
@@ -131,14 +170,88 @@ public function performSearch($query)
             })->toArray();
     }
 
-    public function performUserSearch($query)
+   /* public function performUserSearch($query)
     {
 
 
-    
+    $user = \Illuminate\Support\Facades\Auth::user();
      
-   return \App\Models\User::where('name', 'like', '%' . $query . '%')->get()->toArray();
+    return $user->currentTeam->members()
+        ->where('name', 'like', '%' . $query . '%') 
+        ->get()
+        ->toArray();
 
+
+
+    } */
+
+    public function toggleUser($userId, $name, $role)
+{
+    // Search to see if the user has already been added to the rows array
+    $index = collect($this->rows)->search(function ($row) use ($userId) {
+        return isset($row['user_id']) && $row['user_id'] == $userId;
+    });
+
+    if ($index !== false) {
+        // If they exist, the box was unchecked. Remove them.
+        unset($this->rows[$index]);
+        $this->rows = array_values($this->rows); // Re-index the array
+    } else {
+        // If they don't exist, the box was checked. Add them.
+        // Check if the very first row is just an empty placeholder and replace it
+        if (count($this->rows) === 1 && empty($this->rows[0]['user_id'])) {
+            $this->rows[0] = ['user_id' => $userId, 'name' => $name, 'role' => $role];
+        } else {
+            // Otherwise, append a new user row
+            $this->rows[] = ['user_id' => $userId, 'name' => $name, 'role' => $role];
+        }
+    }
+}
+
+public function updateRole($userId, $role)
+{
+    // Find the specific user and update their role
+    $index = collect($this->rows)->search(function ($row) use ($userId) {
+        return isset($row['user_id']) && $row['user_id'] == $userId;
+    });
+
+    if ($index !== false) {
+        $this->rows[$index]['role'] = $role;
+    }
+}
+
+
+
+    public function save()
+    {
+
+
+    //dd($this->rows);
+       
+     /*foreach ($this->rows as $row) {
+                // Ensure we have a valid user_id and role
+                if (!empty($row['user_id']) && !empty($row['name'])) {
+                    
+    
+                       dd($row['name']);
+                }};*/
+
+               //dd($this->selectedUsers);
+            
+            /*   $this->validate([
+        'rows.*.user_id' => 'required|integer',
+        'rows.*.role'    => 'required|in:admin,member',
+    ]); */
+
+     $user = Auth::user();
+
+foreach ($this->rows as $row) {
+   
+    $user->currentTeam->groupMemberships()->firstOrCreate(
+        ['user_id' => $row['user_id']],
+        ['role' => $row['role']]
+    );
+}
 
 
     }
@@ -177,6 +290,12 @@ public function performSearch($query)
                 'senderName' => $msg->participant->participantable->name ?? 'User',
                 'time'       => $msg->created_at->format('g:i A'),
             ]);
+    }
+
+      #[Computed]
+    public function availableRoles(): array
+    {
+        return TeamRole::assignable();
     }
 
     

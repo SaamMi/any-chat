@@ -231,28 +231,106 @@
             <div class="wire:ignore p-4 border-b border-slate-200 bg-slate-50">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Add users</label>
                 
-                <div class="relative">
-                    <input type="text" 
-                           x-model="userSearchQuery" 
-                           @input.debounce.500ms="performUserSearch(userSearchQuery)"
-                           placeholder="Find users..." 
-                           class="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg pl-3 pr-20 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-                
-                </div>
+              
 
-                <div x-show="userSearchQuery.length > 2 && allResults.length > 0" 
-                     x-transition
-                     class="mt-2 max-h-48 overflow-y-auto bg-white rounded-lg shadow-xl w-full z-20 border border-slate-200">
-                    <template x-for="(result, index) in allResults" :key="result.id">
-                      
-                          
-                            <div class="flex justify-between">
-                               
-                            
-                            <div class="text-slate-600 text-xs truncate" x-text="result.name"></div>
+             
+                     
+
+<form wire:submit.prevent="save">
+    <div class="space-y-4 mb-6">
+        
+    
+        
+        <!-- 2. Single Alpine component for searching -->
+        <div 
+            x-data="{
+                query: '',
+                results: [],
+                showDropdown: false,
+                isSearching: false,
+                
+                async performRowSearch() {
+                    if (this.query.length < 2) {
+                        this.results = [];
+                        return;
+                    }
+                    this.isSearching = true;
+                    this.results = await $wire.searchAvailableUsers(this.query);
+                    this.showDropdown = true;
+                    this.isSearching = false;
+                }
+            }" 
+            class="flex flex-row items-start gap-4 w-full" 
+        >
+            <div class="flex-1 relative">
+                <div @click.away="showDropdown = false">
+                    
+                    <input 
+                        type="text" 
+                        x-model="query" 
+                        @input.debounce.300ms="performRowSearch"
+                        placeholder="Type to search users..." 
+                        class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                    
+                    <!-- Autocomplete Dropdown -->
+                    <div 
+                        wire:ignore.self
+                        x-show="showDropdown && results.length > 0" 
+                        x-transition
+                        class="w-full mt-2 bg-white border border-slate-200 rounded-md shadow-sm max-h-64 overflow-y-auto"
+                        style="display: none;"
+                    >
+                        <template x-for="user in results" :key="user.id">
+                            <div class="flex flex-row items-center justify-between p-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
+                                
+                                <!-- Checkbox -->
+                                <label class="flex items-center gap-3 cursor-pointer flex-1">
+                                    <input 
+                                        type="checkbox" 
+                                        :value="user.id" 
+                                        :name="'user_selection_' + user.id"
+                                        @change="$wire.toggleUser(user.id, user.name, $event.target.closest('.flex-row').querySelector('select').value)"
+                                        class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                    >
+                                    <span x-text="user.name" class="font-medium text-sm text-slate-700"></span>
+                                </label>
+                                
+                                <!-- Role Select -->
+                                <select 
+                                    @change="$wire.updateRole(user.id, $event.target.value)"
+                                    class="block w-28 rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                      @foreach ($this->availableRoles as $role)
+                                        <option value="{{ $role['value'] }}">{{ $role['label'] }}</option>
+                                      @endforeach
+                                </select>
+
                             </div>
-                    </template>
+
+
+                             
+                        </template>
+                        
+                    </div>
                 </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="flex justify-between mt-6 pt-4 border-t border-slate-200">
+        <button 
+            type="submit" 
+            class="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm"
+        >
+            Save Users
+        </button>
+    </div>
+</form>
+ 
+  
+                
 
 
 
