@@ -14,6 +14,8 @@ use SaamMi\AnyChat\Contracts\AiCopilot;
 use App\Models\Team;
 use App\Enums\TeamRole;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 
 class PublicResponse extends Component
@@ -35,6 +37,7 @@ class PublicResponse extends Component
     public $searchableUsers;
     //public array $selectedUsers = [];
     public $rows = [['user_id' => null, 'name' => '', 'role' => 'member']];
+    public $name;
 
 
    
@@ -119,6 +122,22 @@ public function generateAiReply($chatId)
     return $copilot->generateReply($recentMessages);
 }
    
+
+  public function getHistory()
+    {
+        if (!$this->activeConversation) return [];
+        return $this->activeConversation->messages()
+            ->oldest()
+            ->with('participant.participantable')
+            ->get()
+            ->map(fn($msg) => [
+                'id' => $msg->id,
+                'message'    => $msg->body,
+                'auth'       => $msg->participant_id === $this->authParticipant->id ? 1 : 0,
+                'senderName' => $msg->participant->participantable->name ?? 'User',
+                'time'       => $msg->created_at->format('g:i A'),
+            ]);
+    }
     public function selectUser($id, $type = User::class)
     {
         $admin = Auth::user();
@@ -130,6 +149,80 @@ public function generateAiReply($chatId)
             ->first();
 
         return $this->getHistory();
+    }
+
+
+     public function selectGroup($id, $type = User::class)
+    {
+
+     $admin = Auth::user();
+
+     if (preg_match('/Group(\d+)/i', $id, $matches)) {
+    $originalId = $matches[1]; 
+}
+    
+
+         $conversationId = DB::table('groups')->where('id', $originalId)->value('conversation_id');
+   
+           $this->receiver = $type::find($originalId);
+        $this->activeConversation = $admin->getGroupConversationWith($originalId, $type, $conversationId);
+         $this->authParticipant = $this->activeConversation->participants()
+            ->where('participantable_id', $admin->id)
+            ->where('participantable_type', get_class($admin))
+            ->first();
+
+            return $this->getHistory();
+      
+    }
+      public function sendMessage($text)
+    {
+        if (!$this->activeConversation || !$this->authParticipant) return;
+
+        $msg = $this->activeConversation->messages()->create([
+            'body' => strip_tags(trim($text)),
+            'participant_id' => $this->authParticipant->id,
+            'type' => 'text',
+        ]);
+
+      $payload = [
+            'message' => $msg->body,
+            'chatId'  => $this->receiver->id, 
+            'auth'    => 0, 
+            'time' => now()->format('g:i A'),
+        ];
+
+          broadcast(new NewMessage($payload))->toOthers();
+
+        $this->reset('message');
+    }
+
+     public function save()
+    {
+
+
+   
+     
+
+//$ci = Str::random(12);
+DB::table('groups')->insert([
+    'name' => $this->name,
+   // 'conversation_id' => $ci
+]);
+
+     $user = Auth::user();
+
+foreach ($this->rows as $row) {
+   
+    $user->currentTeam->groupMemberships()->firstOrCreate(
+        ['user_id' => $row['user_id']],
+        ['role' => $row['role']]
+    );
+    
+}
+
+
+
+
     }
 
 
@@ -170,21 +263,7 @@ public function performSearch($query)
             })->toArray();
     }
 
-   /* public function performUserSearch($query)
-    {
-
-
-    $user = \Illuminate\Support\Facades\Auth::user();
-     
-    return $user->currentTeam->members()
-        ->where('name', 'like', '%' . $query . '%') 
-        ->get()
-        ->toArray();
-
-
-
-    } */
-
+  
     public function toggleUser($userId, $name, $role)
 {
     // Search to see if the user has already been added to the rows array
@@ -222,75 +301,10 @@ public function updateRole($userId, $role)
 
 
 
-    public function save()
-    {
-
-
-    //dd($this->rows);
-       
-     /*foreach ($this->rows as $row) {
-                // Ensure we have a valid user_id and role
-                if (!empty($row['user_id']) && !empty($row['name'])) {
-                    
-    
-                       dd($row['name']);
-                }};*/
-
-               //dd($this->selectedUsers);
-            
-            /*   $this->validate([
-        'rows.*.user_id' => 'required|integer',
-        'rows.*.role'    => 'required|in:admin,member',
-    ]); */
-
-     $user = Auth::user();
-
-foreach ($this->rows as $row) {
    
-    $user->currentTeam->groupMemberships()->firstOrCreate(
-        ['user_id' => $row['user_id']],
-        ['role' => $row['role']]
-    );
-}
+  
 
-
-    }
-
-    public function sendMessage($text)
-    {
-        if (!$this->activeConversation || !$this->authParticipant) return;
-
-        $msg = $this->activeConversation->messages()->create([
-            'body' => strip_tags(trim($text)),
-            'participant_id' => $this->authParticipant->id,
-            'type' => 'text',
-        ]);
-
-        NewMessage::dispatch([
-            'message' => $msg->body,
-            'chatId'  => $this->receiver->id, 
-            'auth'    => 1, 
-            'time' => now()->format('g:i A'),
-        ]);
-
-        $this->reset('message');
-    }
-
-    public function getHistory()
-    {
-        if (!$this->activeConversation) return [];
-        return $this->activeConversation->messages()
-            ->oldest()
-            ->with('participant.participantable')
-            ->get()
-            ->map(fn($msg) => [
-                'id' => $msg->id,
-                'message'    => $msg->body,
-                'auth'       => $msg->participant_id === $this->authParticipant->id ? 1 : 0,
-                'senderName' => $msg->participant->participantable->name ?? 'User',
-                'time'       => $msg->created_at->format('g:i A'),
-            ]);
-    }
+  
 
       #[Computed]
     public function availableRoles(): array
@@ -327,9 +341,21 @@ foreach ($this->rows as $row) {
                 ->toArray();
         }
 
+         $groupUsers = DB::table('groups')
+                        ->get()
+                        ->map(function ($group) {
+                            return [
+                                'id' => $group->id,
+                                'name' => $group->name,
+                                'type' => '\App\Models\User'
+                            ];
+                        })
+                        ->toArray();
+
         $view = view('anychat::livewire.publicresponse', [
             'users'              => \App\Models\User::all(),
             'guestConversations' => $guestConversations,
+            'group'              => $groupUsers,
             
         ]);
 

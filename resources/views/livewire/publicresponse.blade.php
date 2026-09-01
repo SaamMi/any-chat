@@ -95,7 +95,32 @@
                 </div>
             </div>
 
-            {{-- Guest Queue --}}
+            {{-- Group Queue --}}
+
+
+              <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">GroupChat Users</div>
+          
+
+          @foreach($group as $gr)
+
+        
+    <button @click="setActiveChat('group{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
+            :class="activeChatId == '{{ $gr['id'] }}' ? 'bg-slate-800' : 'hover:bg-slate-800/50'"
+            class="w-full flex items-center justify-between p-4 transition-colors border-b border-slate-800">
+        
+        <div class="flex flex-col text-left">
+            {{-- Blade handles the text rendering directly --}}
+            <span class="font-bold text-sm text-zinc-400">{{ $gr['name'] }}</span>
+       
+        </div>
+
+     
+    </button>
+@endforeach
+
+
+    
+    
 
              {{-- Guest Queue --}}
             <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">Guest Users</div>
@@ -169,17 +194,17 @@
                     <template x-for="(msg, index) in sessions[activeChatId]?.messages || []" :key="index">
                         
                         {{-- Row Alignment (Moved 'flex' to standard class to avoid binding conflicts) --}}
-                        <div class="msg-row flex w-full mb-4 min-w-0" :class="(msg.auth == 1 || msg.is_admin) ? 'justify-end' : 'justify-start'">
+                        <div class="msg-row flex w-full mb-4 min-w-0" :class="(msg.auth == 1) ? 'justify-end' : 'justify-start'">
                             
                             {{-- Bubble Layout --}}
                             <div class="p-3 rounded-2xl shadow-sm max-w-[85%] msg-bubble transition-all duration-500 min-w-0"
-                                 :class="(msg.auth == 1 || msg.is_admin) 
+                                 :class="(msg.auth == 1) 
                                         ? 'bg-dynamic-admin text-dynamic-admin rounded-tr-sm' 
                                         : '{{ $variant === "outline" ? "border-2 border-dynamic-user text-dynamic-user bg-transparent rounded-tl-sm" : "bg-dynamic-user text-white rounded-tl-sm" }}'">
                                 
                                 {{-- Added min-w-0 and break-words here --}}
                                 <p x-text="msg.body || msg.message" class="text-sm break-words whitespace-pre-wrap min-w-0" :id="'msg-' + msg.id"></p>
-                    <span x-text="msg.time" class="text-[9px] opacity-60 mt-1 block" :class="(msg.auth == 1 || msg.is_admin) ? 'text-right' : 'text-left'"></span>
+                    <span x-text="msg.time" class="text-[9px] opacity-60 mt-1 block" :class="(msg.auth == 1) ? 'text-right' : 'text-left'"></span>
                             </div>
                             
                         </div>
@@ -227,6 +252,20 @@
         <div x-show="displayGroupModal" 
              
              class="mt-2 max-h-72 overflow-y-auto bg-white rounded-lg shadow-xl absolute w-full z-20 border border-slate-200">
+
+               
+                
+                
+              
+
+<label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Group name</label>
+
+  <input 
+                        type="text" 
+                        wire:model="name" 
+                        placeholder="Type a group name..." 
+                        class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
            
             <div class="wire:ignore p-4 border-b border-slate-200 bg-slate-50">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Add users</label>
@@ -414,6 +453,10 @@ document.addEventListener('alpine:init', () => {
     async setActiveChat(id, type, name, shouldScroll = true) {
     this.activeChatId = id;
 
+   // console.log(this.activeChatId);
+
+    const rawId = id.startsWith('group') ? id.replace('group', '') : id;
+
     // 1. Update the browser URL without reloading the page
     const newUrl = `{{ $this->path }}/${id}/${encodeURIComponent(type)}`;
     window.history.pushState({}, '', newUrl);
@@ -426,7 +469,17 @@ document.addEventListener('alpine:init', () => {
     }
 
     // 2. Call selectUser to set the Livewire state and get the history
-    const history = await this.$wire.selectUser(id, type);
+
+   
+  let history;  
+
+if (id.startsWith('group')) {
+     history = await this.$wire.selectGroup(id, type);
+   
+} else
+
+   {  history = await this.$wire.selectUser(id, type);
+}
     this.sessions[id].messages = history;
 
     // 3. Update search results to match the newly clicked user
@@ -439,7 +492,7 @@ document.addEventListener('alpine:init', () => {
     }
 
     // Bind to the unique channel for this specific guest/user conversation
-    window.currentEchoChannel = `chat.${id}`; 
+    window.currentEchoChannel = `chat.${rawId}`;
     window.Echo.private(window.currentEchoChannel)
         .listen('.message.new', (e) => {
             // Extract payload smoothly whether wrapped inside an object or flat
@@ -447,10 +500,10 @@ document.addEventListener('alpine:init', () => {
 
             // CRITICAL FIX: If auth is 1, it means the admin sent it.
             // Ignore it entirely since sendChatMessage() already put it on screen.
-            if (data.auth && Number(data.auth) === 1) {
+          /*  if (data.auth && Number(data.auth) === 1) {
                 return; 
-            }
-
+            } */
+console.log(e);
             // This is a authentic inbound message from the guest. Push it!
             this.sessions[id].messages.push({
                 body: data.message || data.body || data.content,
@@ -491,7 +544,7 @@ document.addEventListener('alpine:init', () => {
                 id: Date.now(),
                 time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
             });
-            
+          
             // Trigger Alpine reactivity and scroll
             this.sessions = { ...this.sessions };
             this.$nextTick(() => this.scrollToBottom(id));
@@ -537,7 +590,7 @@ async performUserSearch(userSearchQuery) {
 }
     const raw = await this.$wire.performUserSearch(userSearchQuery);
 
-    console.log(raw);
+ 
 
     
     this.allResults = Array.isArray(raw) ? raw : Object.values(raw);

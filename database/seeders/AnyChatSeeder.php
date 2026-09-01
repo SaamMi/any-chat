@@ -9,6 +9,9 @@ use SaamMi\AnyChat\Models\Conversation;
 use SaamMi\AnyChat\Models\Message;
 use SaamMi\AnyChat\Models\Participant;
 use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+
 use App\Models\User;
 
 class AnyChatSeeder extends Seeder
@@ -32,6 +35,33 @@ class AnyChatSeeder extends Seeder
         $this->seedUsers($admin);
 
         $this->command->info('Chat testing data seeded successfully!');
+
+         $users = User::all();
+
+        foreach ( $users as $index => $usr) {
+            $usr->ownedTeams->each(function($team) use ($users, $usr) {
+                // Generate a random group name
+                $groupName = Str::random(12);
+
+                DB::table('groups')->insert([
+                   'name' => $groupName
+                ]);
+            
+                // Assuming you want to pick 6 random users to add to the group
+                $randomUsers = $users->random(6);
+
+                foreach ( $randomUsers as $r) {
+                    $team->groupMemberships()->firstOrCreate(
+                        ['user_id' => $r->id],
+                        ['role' => 'member', 'group_name' => $groupName, 'team_id' => $team->id]
+                    );
+                }
+            });
+        }
+
+
+
+
     }
     protected function seedGuests(User $admin): void
     {
@@ -115,5 +145,13 @@ class AnyChatSeeder extends Seeder
                 'updated_at' => (clone $baseTime)->addMinutes($index * 5),
             ]);
         }
+
+
+
+       
     }
+
+   
+        
+       
 }

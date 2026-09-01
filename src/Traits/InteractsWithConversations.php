@@ -6,6 +6,7 @@ use SaamMi\AnyChat\Models\Message;
 use SaamMi\AnyChat\Models\Participant;
 use SaamMi\AnyChat\Models\Conversation;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Auth;
 
 trait InteractsWithConversations
 {
@@ -69,9 +70,72 @@ $myId = $this->getKey(); // Returns hexstring for Guest, int for User
     /**
      * For the Dashboard: Creates a unique group thread.
      */
-    public function createGroup(array $participantData, string $name = null)
+    public function getGroupConversationWith($id, $type, $conversationId)
     {
-        $conversation = Conversation::create([
+
+     $admin = Auth::user();
+       // $groupMembers = $admin->currentTeam->groupMemberships()->get();
+
+
+$members = $admin->currentTeam->members()->get()->map(fn ($member) => [
+            'id' => $member->id,
+            'name' => $member->name,
+            'email' => $member->email,
+            'avatar' => $member->avatar ?? null,
+            'initials' => $member->initials(),
+            'role' => $member->pivot->role->value,
+            'role_label' => $member->pivot->role->label(),
+        ])->toArray();
+
+        //dd($members);
+
+       
+
+
+     $conversation = Conversation::where('type', 'group')
+        ->whereHas('participants', fn($q) => $q->where([
+            'participantable_id' => $id,
+            'participantable_type' => $type
+        ]))
+         
+            ->first();
+
+           if (!$conversation) {
+            $conversation = Conversation::create(['type' => 'group']);
+            
+          
+           $conversation->participants()->create([
+            'participantable_id' => $id, 
+            'participantable_type' => $type, 
+            'role' => 'owner'
+        ]);
+
+             // Add invited members
+        foreach ($members as $data) {
+            $conversation->participants()->create([
+                'participantable_id' => $data['id'],
+                'participantable_type' => \App\Models\User::class,
+                'role' => 'member' //to be changed from group_members table
+            ]);
+        }
+        }
+  // dd($conversation);
+     return $conversation;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+   /* $conversation = Conversation::create([
             'type' => 'group',
             'name' => $name, // Ensure your migration has a 'name' column
         ]);
@@ -92,7 +156,7 @@ $myId = $this->getKey(); // Returns hexstring for Guest, int for User
             ]);
         }
 
-        return $conversation;
+        return $conversation; */
     }
 
 

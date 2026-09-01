@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('group_members', function (Blueprint $table) {
             $table->id();
+               
+            $table->string('group_name');
+            $table->foreign('group_name')->references('name')->on('groups');
+          
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('role');

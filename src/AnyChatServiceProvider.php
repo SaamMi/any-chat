@@ -10,6 +10,10 @@ use SaamMi\AnyChat\Livewire\Publicchat;
 use SaamMi\AnyChat\Livewire\PublicResponse;
 use SaamMi\AnyChat\Contracts\AiCopilot;
 use SaamMi\AnyChat\Services\NullAiCopilot;
+use SaamMi\AnyChat\Models\GroupMembership;
+use App\Models\Team;
+
+
 
 
 
@@ -21,7 +25,9 @@ class AnyChatServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
           /* Load channel routes */
         $this->loadRoutesFrom(__DIR__.'/../routes/channels.php');
-
+        Team::resolveRelationUsing('groupMemberships', function ($teamModel) {
+        return $teamModel->hasMany(GroupMembership::class);
+    });
     });
         
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'anychat');
