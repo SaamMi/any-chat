@@ -94,11 +94,13 @@ $members = $admin->currentTeam->members()->get()->map(fn ($member) => [
 
      $conversation = Conversation::where('type', 'group')
         ->whereHas('participants', fn($q) => $q->where([
-            'participantable_id' => $id,
-            'participantable_type' => $type
+            'conversation_id' => $conversationId,
+            'participantable_type' => get_class($admin)
         ]))
          
             ->first();
+
+           // dd($conversation);
 
            if (!$conversation) {
             $conversation = Conversation::create(['type' => 'group']);
@@ -106,7 +108,7 @@ $members = $admin->currentTeam->members()->get()->map(fn ($member) => [
           
            $conversation->participants()->create([
             'participantable_id' => $id, 
-            'participantable_type' => $type, 
+            'participantable_type' => get_class($admin), 
             'role' => 'owner'
         ]);
 
@@ -114,7 +116,7 @@ $members = $admin->currentTeam->members()->get()->map(fn ($member) => [
         foreach ($members as $data) {
             $conversation->participants()->create([
                 'participantable_id' => $data['id'],
-                'participantable_type' => \App\Models\User::class,
+                'participantable_type' => get_class($admin),
                 'role' => 'member' //to be changed from group_members table
             ]);
         }

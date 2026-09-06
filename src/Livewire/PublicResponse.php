@@ -152,7 +152,7 @@ public function generateAiReply($chatId)
     }
 
 
-     public function selectGroup($id, $type = User::class)
+     public function selectGroup($id, $type = \App\Models\User::class)
     {
 
      $admin = Auth::user();
@@ -163,9 +163,12 @@ public function generateAiReply($chatId)
     
 
          $conversationId = DB::table('groups')->where('id', $originalId)->value('conversation_id');
-   
+         
+   //dd($conversationId);
            $this->receiver = $type::find($originalId);
         $this->activeConversation = $admin->getGroupConversationWith($originalId, $type, $conversationId);
+
+     //   dd($this->activeConversation);
          $this->authParticipant = $this->activeConversation->participants()
             ->where('participantable_id', $admin->id)
             ->where('participantable_type', get_class($admin))
@@ -186,6 +189,7 @@ public function generateAiReply($chatId)
 
       $payload = [
             'message' => $msg->body,
+            'senderName' => $msg->participant->participantable->name ?? 'User',
             'chatId'  => $this->receiver->id, 
             'auth'    => 0, 
             'time' => now()->format('g:i A'),

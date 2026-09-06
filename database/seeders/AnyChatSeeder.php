@@ -36,29 +36,56 @@ class AnyChatSeeder extends Seeder
 
         $this->command->info('Chat testing data seeded successfully!');
 
-         $users = User::all();
 
-        foreach ( $users as $index => $usr) {
-            $usr->ownedTeams->each(function($team) use ($users, $usr) {
-                // Generate a random group name
-                $groupName = Str::random(12);
+$users = User::all();
 
-                DB::table('groups')->insert([
-                   'name' => $groupName
-                ]);
+foreach ( $users as $index => $usr) {
+    // Note: We are adding $admin to the `use` statement here so we can add them to the group
+    $usr->ownedTeams->each(function($team) use ($users, $usr, $admin) {
+        // Generate a random group name
+        $groupName = Str::random(12);
+
+        // 1. Create the Conversation FIRST so we have the ID
+        $conversation = Conversation::create(['type' => 'group']);
+
+        // 2. Insert the Group AND link the conversation_id
+        DB::table('groups')->insert([
+           'name' => $groupName,
+           'conversation_id' => $conversation->id // Required by your Livewire component
+        ]);
+
+        // 3. Ensure the Admin is always a participant so the UI doesn't crash
+        $conversation->participants()->create([
+            'participantable_id' => $admin->id, 
+            'participantable_type' => \App\Models\User::class, 
+            'role' => 'owner'
+        ]);
+    
+        // 4. Pick 6 random users
+       $randomUsers = $users->reject(fn($u) => $u->id === $admin->id)->random(6);
+
+        foreach ( $randomUsers as $r) {
+            $team->groupMemberships()->firstOrCreate(
+                ['user_id' => $r->id],
+                ['role' => 'member', 'group_name' => $groupName, 'team_id' => $team->id]
+            );
             
-                // Assuming you want to pick 6 random users to add to the group
-                $randomUsers = $users->random(6);
+            // 5. Capture the created participant in a variable
+            $participant = $conversation->participants()->firstOrCreate([
+                'participantable_id' => $r->id, 
+                'participantable_type' => \App\Models\User::class, 
+                'role' => 'member' // Setting random users as members
+            ]);
 
-                foreach ( $randomUsers as $r) {
-                    $team->groupMemberships()->firstOrCreate(
-                        ['user_id' => $r->id],
-                        ['role' => 'member', 'group_name' => $groupName, 'team_id' => $team->id]
-                    );
-                }
-            });
+            // 6. Use $participant->id instead of $r->id for the message!
+            $conversation->messages()->create([
+                'body' => fake()->realText(rand(30, 80)),
+                'participant_id' => $participant->id,
+                'type' => 'text',
+            ]);
         }
-
+    });
+}
 
 
 

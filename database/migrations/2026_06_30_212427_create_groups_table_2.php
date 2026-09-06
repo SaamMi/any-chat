@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
-            //$table->unsignedBigInteger('conversation_id');
+           
 
             
             $table->string('name')->unique();
+            $table->foreignId('conversation_id')->constrained('conversations')->cascadeOnDelete();
             $table->text('description')->nullable();
             $table->string('avatar_url')->nullable();
             $table->timestamps();

@@ -204,7 +204,9 @@
                                 
                                 {{-- Added min-w-0 and break-words here --}}
                                 <p x-text="msg.body || msg.message" class="text-sm break-words whitespace-pre-wrap min-w-0" :id="'msg-' + msg.id"></p>
-                    <span x-text="msg.time" class="text-[9px] opacity-60 mt-1 block" :class="(msg.auth == 1) ? 'text-right' : 'text-left'"></span>
+                                 <span x-text="msg.senderName" class="text-[9px] opacity-60 mt-1 block" :class="(msg.auth == 1) ? 'text-right' : 'text-left'"></span>
+                                 <span x-text="msg.time" class="text-[9px] opacity-60 mt-1 block" :class="(msg.auth == 1) ? 'text-right' : 'text-left'"></span>
+                   
                             </div>
                             
                         </div>
@@ -453,7 +455,7 @@ document.addEventListener('alpine:init', () => {
     async setActiveChat(id, type, name, shouldScroll = true) {
     this.activeChatId = id;
 
-   // console.log(this.activeChatId);
+   console.log(this.activeChatId);
 
     const rawId = id.startsWith('group') ? id.replace('group', '') : id;
 
@@ -540,6 +542,7 @@ console.log(e);
             // Push to local Alpine state immediately
             this.sessions[id].messages.push({ 
                 body: text, 
+                senderName: text,
                 auth: 1, 
                 id: Date.now(),
                 time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -643,15 +646,7 @@ getMatchCount(id) {
         init() {
 
 
-         Echo.channel('anychat-support')
-                .listen('.user.sent', (e) => {
-
-
-
-
-
-                
-});
+        
          
     const saved = localStorage.getItem('anychat_admin_sessions');
     if (saved) {
