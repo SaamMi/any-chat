@@ -65,6 +65,14 @@ foreach ( $users as $index => $usr) {
        $randomUsers = $users->reject(fn($u) => $u->id === $admin->id)->random(6);
 
         foreach ( $randomUsers as $r) {
+
+ $team->memberships()->firstOrCreate(
+                ['user_id' => $r->id],
+                ['role' => 'member', 'team_id' => $team->id]
+            );
+
+
+
             $team->groupMemberships()->firstOrCreate(
                 ['user_id' => $r->id],
                 ['role' => 'member', 'group_name' => $groupName, 'team_id' => $team->id]

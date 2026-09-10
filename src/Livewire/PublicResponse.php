@@ -69,31 +69,32 @@ class PublicResponse extends Component
 
 
 
- public function searchAvailableUsers($searchQuery)
+public function searchAvailableUsers($searchQuery)
 {
     if (strlen($searchQuery) < 2) {
         return [];
     }
 
-     $user = Auth::user();
-      
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+     $admin = \Illuminate\Support\Facades\Auth::user();
+
+
     return $user->currentTeam->members()
         ->where('name', 'like', '%' . $searchQuery . '%')
-        //->select('name')
-        //->take(5)
-        ->get()
-        ->toArray(); 
+        ->take(10)
      
-   
-
-    // Adjust the model namespace and query constraints as needed for your app
-   /* return \App\Models\User::where('name', 'like', '%' . $searchQuery . '%')
-        ->select('id', 'name')
-        ->take(5)
         ->get()
-        ->toArray(); */
-} 
-
+        ->map(function($member) {
+            return [
+                'id' => $member->id,
+                'name' => $member->name,
+            ];
+        })
+        ->reject(fn($u) => $u['id'] === $admin->id)
+        ->values() // <-- CRUCIAL: Forces 0-indexing so it encodes as a true JS array []
+        ->toArray();
+}
 public function generateAiReply($chatId)
 {
     // 1. Fetch recent history and format it for AI consumption
@@ -200,34 +201,44 @@ public function generateAiReply($chatId)
         $this->reset('message');
     }
 
-     public function save()
-    {
-
 
    
+public function save()
+{
+    $conversation = Conversation::create(['type' => 'group']);
      
+    DB::table('groups')->insert([
+        'name' => $this->name,
+        'conversation_id' => $conversation->id
+    ]);
 
-//$ci = Str::random(12);
-DB::table('groups')->insert([
-    'name' => $this->name,
-   // 'conversation_id' => $ci
-]);
+    $admin = Auth::user();
 
-     $user = Auth::user();
-
-foreach ($this->rows as $row) {
+    $conversation->participants()->create([
+        'participantable_id' => $admin->id, 
+        'participantable_type' => get_class($admin), 
+        'role' => 'owner'
+    ]);
    
-    $user->currentTeam->groupMemberships()->firstOrCreate(
-        ['user_id' => $row['user_id']],
-        ['role' => $row['role']]
-    );
-    
-}
 
+     $admin->currentTeam->groupMemberships()->create([
+            'group_name' => $this->name,
+            'user_id'    => $admin->id,
+            'role'       => 'admin'
+        ]);
+    foreach ($this->rows as $row) {
+        // Skip the empty placeholder row if no users were selected
+        if(empty($row['user_id'])) continue; 
 
-
-
+        // Pass a standard associative array; team_id is injected automatically
+        $admin->currentTeam->groupMemberships()->create([
+            'group_name' => $this->name,
+            'user_id'    => $row['user_id'],
+            'role'       => $row['role']
+        ]);
     }
+}
+    
 
 
 

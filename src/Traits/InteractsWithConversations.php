@@ -105,7 +105,7 @@ $members = $admin->currentTeam->members()->get()->map(fn ($member) => [
            if (!$conversation) {
             $conversation = Conversation::create(['type' => 'group']);
             
-          
+          // this needs to be checked,we have to pass the user_id to the  'participantable_id' field not the groupId
            $conversation->participants()->create([
             'participantable_id' => $id, 
             'participantable_type' => get_class($admin), 

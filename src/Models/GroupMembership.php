@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Carbon;
 
 
-#[Fillable(['team_id', 'user_id', 'role'])]
+#[Fillable(['team_id', 'user_id', 'role', 'group_name'])]
 class GroupMembership extends Pivot
 {
     /**
