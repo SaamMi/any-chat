@@ -317,7 +317,7 @@
                                     class="absolute top-full left-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-xl max-h-[280px] overflow-y-auto overscroll-contain"
                                 >
                                     <template x-for="user in Object.values(results)" :key="user.id">
-                                        <div class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
+                                        <div x-data="{ role: 'admin' }" class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
                                             <label class="flex items-center gap-3 cursor-pointer flex-1">
                                                 <input 
                                                     type="checkbox" 
@@ -329,6 +329,7 @@
                                             </label>
                                             
                                             <select 
+                                                x-model="role"
                                                 @change="$wire.updateRole(user.id, $event.target.value)"
                                                 class="block w-28 rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                             >
@@ -336,6 +337,7 @@
                                                     <option value="{{ $role['value'] }}">{{ $role['label'] }}</option>
                                                 @endforeach
                                             </select>
+                                            <span x-text="role"></span>
                                         </div>
                                     </template>
                                 </div>
