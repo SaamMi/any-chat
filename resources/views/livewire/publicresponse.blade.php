@@ -266,27 +266,23 @@
         <template x-if="editChatId">
             <div class="w-full">
                 <div class="flex justify-between items-center mb-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Group Name</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Edit group </label>
                     <button @click="editGroupModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
                 </div>
 
-                <input 
-                    type="text" 
-                    wire:model="name" 
-                    placeholder="Type a group name..." 
-                    class="mt-1 block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 mb-4"
-                >
+             
 
                 <div class="border-t border-slate-200 pt-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Add Users</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Search users</label>
                     
-                    <form wire:submit.prevent="save">
+                    <form wire:submit.prevent="saveGroup">
                         <div class="flex flex-row items-start gap-4 w-full">
                             <!-- Search Box Container -->
                             <div 
                                 x-data="{
                                     query: '',
                                     results: [],
+                            
                                     showDropdown: false,
                                     async performRowSearch() {
                                         if (this.query.length < 2) {
@@ -317,7 +313,7 @@
                                     class="absolute top-full left-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-xl max-h-[280px] overflow-y-auto overscroll-contain"
                                 >
                                     <template x-for="user in Object.values(results)" :key="user.id">
-                                        <div x-data="{ role: 'admin' }" class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
+                                        <div x-data="{ role: {{ 'user.pivot.role' }} }" class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
                                             <label class="flex items-center gap-3 cursor-pointer flex-1">
                                                 <input 
                                                     type="checkbox" 
@@ -337,19 +333,14 @@
                                                     <option value="{{ $role['value'] }}">{{ $role['label'] }}</option>
                                                 @endforeach
                                             </select>
-                                            <span x-text="role"></span>
+                                           <span x-text="role" class="font-medium text-sm text-slate-700"></span>
                                         </div>
                                     </template>
                                 </div>
                             </div>
 
                             <!-- Save Button -->
-                            <button 
-                                type="submit" 
-                                class="shrink-0 px-4 py-2 h-[40px] bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm"
-                            >
-                                Save Users
-                            </button>
+                         
                         </div>
                     </form>
                 </div>
@@ -367,7 +358,7 @@
     <!-- RIGHT COLUMN: Pinned Sidebar (Fixed width, shrink-0 prevents compressing) -->
     <div class="w-[280px] shrink-0 border-l border-slate-200 pl-6 flex flex-col">   
         
-        <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30 rounded-t-lg">GroupChat Users</div>
+        <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30 rounded-t-lg">Groups</div>
         
         <div class="overflow-y-auto max-h-[50vh] border border-t-0 border-slate-800/30 rounded-b-lg">
             @foreach($group as $gr)

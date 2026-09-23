@@ -28,7 +28,18 @@ class AnyChatServiceProvider extends ServiceProvider
         Team::resolveRelationUsing('groupMemberships', function ($teamModel) {
         return $teamModel->hasMany(GroupMembership::class);
     });
+    
+    Team::resolveRelationUsing('groupMembers', function ($teamModel) {
+        return $teamModel->belongsToMany(User::class, 'group _members', 'team_id', 'group_name')
+            ->using(GroupMembership::class)
+            ->withPivot(['role'])
+            ->withTimestamps();
     });
+    
+    
+
+    });
+    
         
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'anychat');
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');

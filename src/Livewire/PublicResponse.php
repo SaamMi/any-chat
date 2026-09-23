@@ -38,6 +38,8 @@ class PublicResponse extends Component
     //public array $selectedUsers = [];
     public $rows = [['user_id' => null, 'name' => '', 'role' => 'member']];
     public $name;
+    
+    public array $members = [];
 
 
    
@@ -85,13 +87,13 @@ public function searchAvailableUsers($searchQuery)
         ->take(10)
      
         ->get()
-        ->map(function($member) {
+       /*->map(function($member) {
             return [
                 'id' => $member->id,
                 'name' => $member->name,
             ];
-        })
-        ->reject(fn($u) => $u['id'] === $admin->id)
+        }) */
+       // ->reject(fn($u) => $u['id'] === $admin->id)
         ->values() // <-- CRUCIAL: Forces 0-indexing so it encodes as a true JS array []
         ->toArray();
 }
@@ -152,7 +154,23 @@ public function generateAiReply($chatId)
         return $this->getHistory();
     }
 
+    public function editGroup()
+     {
+     	
+           $admin = Auth::user();
+     	       $this->members = $admin->currentTeam->groupMembers()->get()->map(fn ($member) => [
+            'id' => $member->id,
+            'name' => $member->name,
+            'email' => $member->email,
+            'avatar' => $member->avatar ?? null,
+            'initials' => $member->initials(),
+            'role' => $member->pivot->role->value,
+         //   'role_label' => $member->pivot->role->label(),
+        ])->toArray();
 
+     }
+    
+    
      public function selectGroup($id, $type = \App\Models\User::class)
     {
 
@@ -238,6 +256,13 @@ public function save()
         ]);
     }
 }
+
+public function saveGroup()
+{
+
+
+}
+
     
 
 
