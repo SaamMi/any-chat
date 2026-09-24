@@ -290,7 +290,7 @@
                                             this.showDropdown = false;
                                             return;
                                         }
-                                        this.results = await $wire.searchAvailableUsers(this.query);
+                                        this.results = await $wire.searchAvailableTeamUsers(this.query,this.editChatId);
                                         this.showDropdown = true;
                                     }
                                 }" 
@@ -362,7 +362,7 @@
         
         <div class="overflow-y-auto max-h-[50vh] border border-t-0 border-slate-800/30 rounded-b-lg">
             @foreach($group as $gr)
-                <button @click="setEditChat('group{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
+                <button @click="setEditChat('{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
                         :class="editChatId == '{{ $gr['id'] }}' ? 'bg-slate-800' : 'hover:bg-slate-800/50'"
                         class="w-full flex items-center justify-between p-4 transition-colors border-b border-slate-800 last:border-b-0">
                     

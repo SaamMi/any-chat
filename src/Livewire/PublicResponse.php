@@ -16,6 +16,7 @@ use App\Enums\TeamRole;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use SaamMi\AnyChat\Models\Group;
 
 
 class PublicResponse extends Component
@@ -96,6 +97,60 @@ public function searchAvailableUsers($searchQuery)
        // ->reject(fn($u) => $u['id'] === $admin->id)
         ->values() // <-- CRUCIAL: Forces 0-indexing so it encodes as a true JS array []
         ->toArray();
+}
+
+public function searchAvailableTeamUsers($searchQuery,$editChatId)
+{
+    if (strlen($searchQuery) < 2) {
+        return [];
+    }
+//dd($editChatId);
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+    // 1. Fetch all team members in a single query
+    $allTeamMembers = $user->currentTeam->members()->get();
+
+    //dd($allTeamMembers);
+
+    // 2. Fetch group member IDs for status determination
+   // $groupMemberIds = $user->currentTeam->groupMembers()->get()->pluck('id')->toArray();
+
+$currentGroup = Group::find($editChatId);
+
+   $groupMemberIds = $currentGroup->groupMembers()->get()->pluck('id')->toArray();
+
+
+
+
+   dd($groupMemberIds);
+    // 3. Process, partition, and sort
+   $result =  $allTeamMembers
+        ->reject(fn($u) => $u->id === $user->id) // Exclude current user/admin
+        ->map(function ($u) use ($searchQuery, $groupMemberIds) {
+            // Check if user matches the search query (case-insensitive)
+            $isSearchResult = stripos($u->name, $searchQuery) !== false;
+
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'status' => in_array($u->id, $groupMemberIds) ? 'member' : 'non-member',
+                'is_match' => $isSearchResult ? 0 : 1, // 0 comes first when sorting asc
+            ];
+        })
+        ->sortBy([
+            ['is_match', 'asc'], // Search query matches first, remaining team at the bottom
+            ['id', 'asc'],       // Both groups sorted internally by ID
+        ])
+        ->map(function ($item) {
+            unset($item['is_match']); // Remove the temporary sorting flag
+            return $item;
+        })
+        ->values() // Re-indexes array starting from 0 for JS
+        ->toArray();
+
+
+
+        dd($result);
 }
 public function generateAiReply($chatId)
 {

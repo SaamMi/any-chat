@@ -12,6 +12,9 @@ use SaamMi\AnyChat\Contracts\AiCopilot;
 use SaamMi\AnyChat\Services\NullAiCopilot;
 use SaamMi\AnyChat\Models\GroupMembership;
 use App\Models\Team;
+use App\Models\User;
+use App\Models\Group;
+
 
 
 
@@ -29,8 +32,8 @@ class AnyChatServiceProvider extends ServiceProvider
         return $teamModel->hasMany(GroupMembership::class);
     });
     
-    Team::resolveRelationUsing('groupMembers', function ($teamModel) {
-        return $teamModel->belongsToMany(User::class, 'group _members', 'team_id', 'group_name')
+    Team::resolveRelationUsing('groupMembers', function ($groupModel) {
+        return $groupModel->belongsToMany(User::class, 'group_members', 'group_name', 'user_id')
             ->using(GroupMembership::class)
             ->withPivot(['role'])
             ->withTimestamps();
