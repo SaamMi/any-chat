@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 // Ensure you import your models using their full package namespace
 use SaamMi\AnyChat\Models\Guest;
 use SaamMi\AnyChat\Models\Conversation;
+use SaamMi\AnyChat\Models\Group;
 use SaamMi\AnyChat\Models\Message;
 use SaamMi\AnyChat\Models\Participant;
 use Illuminate\Support\Str;
@@ -49,11 +50,17 @@ foreach ( $users as $index => $usr) {
         $conversation = Conversation::create(['type' => 'group']);
 
         // 2. Insert the Group AND link the conversation_id
-        DB::table('groups')->insert([
+      /*  DB::table('groups')->insert([
            'name' => $groupName,
            'conversation_id' => $conversation->id // Required by your Livewire component
-        ]);
+        ]); */
 
+    $group = Group::create([
+           'name' => $groupName,
+           'conversation_id' => $conversation->id // Required by your Livewire component
+        ]); 
+
+//dd($group);
         // 3. Ensure the Admin is always a participant so the UI doesn't crash
         $conversation->participants()->create([
             'participantable_id' => $admin->id, 
@@ -75,7 +82,7 @@ foreach ( $users as $index => $usr) {
 
             $team->groupMemberships()->firstOrCreate(
                 ['user_id' => $r->id],
-                ['role' => 'member', 'group_name' => $groupName, 'team_id' => $team->id]
+                ['role' => 'member', 'group_name' => $groupName, 'group_id' => $group->id, 'team_id' => $team->id]
             );
             
             // 5. Capture the created participant in a variable

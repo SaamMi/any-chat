@@ -122,9 +122,9 @@ $currentGroup = Group::find($editChatId);
 
 
 
-   dd($groupMemberIds);
+//   dd($groupMemberIds);
     // 3. Process, partition, and sort
-   $result =  $allTeamMembers
+   return $allTeamMembers
         ->reject(fn($u) => $u->id === $user->id) // Exclude current user/admin
         ->map(function ($u) use ($searchQuery, $groupMemberIds) {
             // Check if user matches the search query (case-insensitive)
@@ -135,6 +135,7 @@ $currentGroup = Group::find($editChatId);
                 'name' => $u->name,
                 'status' => in_array($u->id, $groupMemberIds) ? 'member' : 'non-member',
                 'is_match' => $isSearchResult ? 0 : 1, // 0 comes first when sorting asc
+                'role' => $u->pivot->role,
             ];
         })
         ->sortBy([
@@ -150,7 +151,7 @@ $currentGroup = Group::find($editChatId);
 
 
 
-        dd($result);
+      //  dd($result);
 }
 public function generateAiReply($chatId)
 {

@@ -16,6 +16,8 @@ class Group extends Model
     
 
 protected $fillable = [
+
+        
         'name',
         'conversation_id',
         'description',
@@ -26,7 +28,7 @@ protected $fillable = [
 
       public function groupMembers()
     {
-        return $this->belongsToMany(User::class, 'group_members', 'group_name', 'user_id')
+        return $this->belongsToMany(User::class, 'group_members', 'group_id', 'user_id')
             ->using(GroupMembership::class)
             ->withPivot(['role'])
             ->withTimestamps();

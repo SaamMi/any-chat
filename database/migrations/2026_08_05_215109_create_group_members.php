@@ -16,13 +16,13 @@ return new class extends Migration
                
             $table->string('group_name');
             $table->foreign('group_name')->references('name')->on('groups');
-          
+            $table->foreignId('group_id')->constrained()->cascadeOnDelete();
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('role');
             $table->timestamps();
 
-            //$table->unique(['team_id', 'user_id']);
+            $table->unique(['group_id', 'user_id']);
         });
     }
 

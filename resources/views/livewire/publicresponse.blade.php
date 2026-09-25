@@ -291,6 +291,7 @@
                                             return;
                                         }
                                         this.results = await $wire.searchAvailableTeamUsers(this.query,this.editChatId);
+                                        console.log(this.results);
                                         this.showDropdown = true;
                                     }
                                 }" 
@@ -308,13 +309,16 @@
                                 <!-- Search Dropdown -->
                                 <div 
                                     x-cloak
-                                    x-show="showDropdown && results && Object.values(results).length > 0" 
+                                    x-show="showDropdown && results" 
                                     @wheel.stop
                                     class="absolute top-full left-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-xl max-h-[280px] overflow-y-auto overscroll-contain"
                                 >
-                                    <template x-for="user in Object.values(results)" :key="user.id">
-                                        <div x-data="{ role: {{ 'user.pivot.role' }} }" class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
-                                            <label class="flex items-center gap-3 cursor-pointer flex-1">
+                                    <template x-for="user in results" :key="user.id">
+                                        <div x-data="{ role: {{ 'user.role' }} }" class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
+                                            <label class="flex items-center gap-3 cursor-pointer flex-1"
+                                                      :class="('user.status' === 'non-member') 
+                                        ? 'bg-purple-900' 
+                                        : 'bg-red-900'">
                                                 <input 
                                                     type="checkbox" 
                                                     :value="user.id" 
