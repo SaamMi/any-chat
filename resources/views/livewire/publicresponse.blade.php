@@ -256,7 +256,7 @@
         </div>
   <div x-show="editGroupModal" 
      x-cloak
-     class="flex flex-row gap-6 p-6 bg-white rounded-xl shadow-2xl absolute top-4 left-4 right-4 z-30 border border-slate-200 overflow-visible"
+     class="flex flex-row w-full gap-6 p-6 bg-white rounded-xl shadow-2xl absolute top-4 left-4 right-4 z-30 border border-slate-200 overflow-visible"
      @click.away="editGroupModal = false">
 
     <!-- LEFT COLUMN: Takes up all available remaining space (flex-1) -->
@@ -275,29 +275,37 @@
                 <div class="border-t border-slate-200 pt-4">
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Search users</label>
                     
-                    <form wire:submit.prevent="saveGroup">
+                 <form @submit.prevent="$wire.saveGroup(editChatId)">
                         <div class="flex flex-row items-start gap-4 w-full">
                             <!-- Search Box Container -->
-                            <div 
-                                x-data="{
-                                    query: '',
-                                    results: [],
-                            
-                                    showDropdown: false,
-                                    async performRowSearch() {
-                                        if (this.query.length < 2) {
-                                            this.results = [];
-                                            this.showDropdown = false;
-                                            return;
-                                        }
-                                        this.results = await $wire.searchAvailableTeamUsers(this.query,this.editChatId);
-                                        console.log(this.results);
-                                        this.showDropdown = true;
-                                    }
-                                }" 
-                                class="flex-1 relative"
-                                @click.away="showDropdown = false"
-                            >
+                         <div 
+    x-data="{
+        query: '',
+        results: [],
+        showDropdown: false,
+        
+        init() {
+            // Watch for changes to the parent's editChatId to reset the search state
+            this.$watch('editChatId', () => {
+                this.query = '';
+                this.results = [];
+                this.showDropdown = false;
+            });
+        },
+
+        async performRowSearch() {
+            if (this.query.length < 2) {
+                this.results = [];
+                this.showDropdown = false;
+                return;
+            }
+            this.results = await $wire.searchAvailableTeamUsers(this.query, this.editChatId);
+            this.showDropdown = true;
+        }
+    }" 
+    class="flex-1 relative"
+    @click.away="showDropdown = false"
+>
                                 <input 
                                     type="text" 
                                     x-model="query" 
@@ -314,15 +322,21 @@
                                     class="absolute top-full left-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-xl max-h-[280px] overflow-y-auto overscroll-contain"
                                 >
                                     <template x-for="user in results" :key="user.id">
-                                        <div x-data="{ role: {{ 'user.role' }} }" class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
+                                        
+        
+                                        <div x-data="{ role: user.status,
+                                                       isDeleting: false }" 
+                                             x-show="!isDeleting"         
+                                                       
+                                            class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
                                             <label class="flex items-center gap-3 cursor-pointer flex-1"
-                                                      :class="('user.status' === 'non-member') 
-                                        ? 'bg-purple-900' 
-                                        : 'bg-red-900'">
+                                                      :class="user.status === 'non-member'
+                                        ? 'bg-white' 
+                                        : 'bg-slate-100'">
                                                 <input 
                                                     type="checkbox" 
                                                     :value="user.id" 
-                                                    @change="$wire.toggleUser(user.id, user.name, $event.target.closest('.flex-row').querySelector('select').value)"
+                                                    @change="$wire.toggleGroupUser(user.id, user.name, $event.target.closest('.flex-row').querySelector('select').value, user.status)"
                                                     class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                                                 >
                                                 <span x-text="user.name" class="font-medium text-sm text-slate-700"></span>
@@ -338,12 +352,29 @@
                                                 @endforeach
                                             </select>
                                            <span x-text="role" class="font-medium text-sm text-slate-700"></span>
+                                      <span>   
+                                       <button 
+                                       type="button"
+    x-text="role === 'non-member' ? 'Add user' : 'Remove user'"
+    @click="role = (role === 'member' ? 'non-member' : 'member')"   
+    class="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm"
+>
+</button> 
+                                    
+                                    
+                                    </span>
                                         </div>
                                     </template>
                                 </div>
                             </div>
 
                             <!-- Save Button -->
+                           <button 
+                    type="submit" 
+                    class="shrink-0 px-4 py-2 h-[40px] bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm"
+                >
+                    Save Users
+                </button>  
                          
                         </div>
                     </form>

@@ -38,6 +38,9 @@ class PublicResponse extends Component
     public $searchableUsers;
     //public array $selectedUsers = [];
     public $rows = [['user_id' => null, 'name' => '', 'role' => 'member']];
+
+     public $groupRows = [['user_id' => null, 'name' => '', 'role' => 'member', 'status' => '']];
+
     public $name;
     
     public array $members = [];
@@ -281,7 +284,7 @@ public function save()
 {
     $conversation = Conversation::create(['type' => 'group']);
      
-    DB::table('groups')->insert([
+   $group = Group::create([
         'name' => $this->name,
         'conversation_id' => $conversation->id
     ]);
@@ -297,6 +300,7 @@ public function save()
 
      $admin->currentTeam->groupMemberships()->create([
             'group_name' => $this->name,
+            'group_id'   => $group->id,
             'user_id'    => $admin->id,
             'role'       => 'admin'
         ]);
@@ -307,18 +311,47 @@ public function save()
         // Pass a standard associative array; team_id is injected automatically
         $admin->currentTeam->groupMemberships()->create([
             'group_name' => $this->name,
+            'group_id'   => $group->id,
             'user_id'    => $row['user_id'],
             'role'       => $row['role']
         ]);
     }
 }
 
-public function saveGroup()
+public function saveGroup($groupId)
 {
 
 
-}
 
+dd($this->groupRows);
+    $admin = Auth::user();
+    
+    // Optional: Fetch the group if you need to reliably save the 'group_name'
+    $group = \SaamMi\AnyChat\Models\Group::find($groupId);
+    $groupName = $group ? $group->name : $this->name;
+
+   /* $admin->currentTeam->groupMemberships()->firstOrCreate([
+        'group_name' => $groupName,
+        'group_id'   => $groupId,
+        'user_id'    => $admin->id,
+        'role'       => 'admin'
+    ]);  */
+
+
+
+    foreach ($this->rows as $row) {
+        // Skip the empty placeholder row if no users were selected
+        if(empty($row['user_id'])) continue; 
+
+        // Pass a standard associative array
+        $admin->currentTeam->groupMemberships()->create([
+            'group_name' => $groupName,
+            'group_id'   => $groupId,
+            'user_id'    => $row['user_id'],
+            'role'       => $row['role']
+        ]);
+    }
+}
     
 
 
@@ -379,6 +412,30 @@ public function performSearch($query)
         } else {
             // Otherwise, append a new user row
             $this->rows[] = ['user_id' => $userId, 'name' => $name, 'role' => $role];
+        }
+    }
+}
+
+ public function toggleGroupUser($userId, $name, $role, $status)
+{
+
+    // Search to see if the user has already been added to the rows array
+    $index = collect($this->rows)->search(function ($row) use ($userId) {
+        return isset($row['user_id']) && $row['user_id'] == $userId;
+    });
+
+    if ($index !== false) {
+        // If they exist, the box was unchecked. Remove them.
+        unset($this->rows[$index]);
+        $this->rows = array_values($this->rows); // Re-index the array
+    } else {
+        // If they don't exist, the box was checked. Add them.
+        // Check if the very first row is just an empty placeholder and replace it
+        if (count($this->rows) === 1 && empty($this->rows[0]['user_id'])) {
+            $this->rows[0] = ['user_id' => $userId, 'name' => $name, 'role' => $role, 'status' => $status];
+        } else {
+            // Otherwise, append a new user row
+            $this->rows[] = ['user_id' => $userId, 'name' => $name, 'role' => $role, 'status' => $status];
         }
     }
 }
