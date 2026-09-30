@@ -275,7 +275,7 @@
                 <div class="border-t border-slate-200 pt-4">
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Search users</label>
                     
-                 <form @submit.prevent="$wire.saveGroup(editChatId)">
+                 <form @submit.prevent="$wire.saveGroup(editChatId,editGroupName)">
                         <div class="flex flex-row items-start gap-4 w-full">
                             <!-- Search Box Container -->
                          <div 
@@ -324,46 +324,56 @@
                                     <template x-for="user in results" :key="user.id">
                                         
         
-                                        <div x-data="{ role: user.status,
-                                                       isDeleting: false }" 
-                                             x-show="!isDeleting"         
-                                                       
-                                            class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
-                                            <label class="flex items-center gap-3 cursor-pointer flex-1"
-                                                      :class="user.status === 'non-member'
-                                        ? 'bg-white' 
-                                        : 'bg-slate-100'">
-                                                <input 
-                                                    type="checkbox" 
-                                                    :value="user.id" 
-                                                    @change="$wire.toggleGroupUser(user.id, user.name, $event.target.closest('.flex-row').querySelector('select').value, user.status)"
-                                                    class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                                                >
-                                                <span x-text="user.name" class="font-medium text-sm text-slate-700"></span>
-                                            </label>
-                                            
-                                            <select 
-                                                x-model="role"
-                                                @change="$wire.updateRole(user.id, $event.target.value)"
-                                                class="block w-28 rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            >
-                                                @foreach ($this->availableRoles as $role)
-                                                    <option value="{{ $role['value'] }}">{{ $role['label'] }}</option>
-                                                @endforeach
-                                            </select>
-                                           <span x-text="role" class="font-medium text-sm text-slate-700"></span>
-                                      <span>   
-                                       <button 
-                                       type="button"
-    x-text="role === 'non-member' ? 'Add user' : 'Remove user'"
-    @click="role = (role === 'member' ? 'non-member' : 'member')"   
-    class="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm"
+                                       
+                                    
+                                <div x-data="{ 
+         status: user.status, 
+         dbRole: user.role,
+         isDeleting: false 
+     }" 
+     x-show="!isDeleting"         
+     class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
+    
+    <label class="flex items-center gap-3 cursor-pointer flex-1"
+           :class="status === 'non-member' ? 'bg-white' : 'bg-slate-100'">
+        <input 
+            type="checkbox" 
+            :value="user.id" 
+            :checked="status === 'member'"
+            @change="
+                status = $event.target.checked ? 'member' : 'non-member';
+                $wire.toggleGroupUser(user.id, user.name, dbRole, status);
+            "
+            class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+        >
+        <span x-text="user.name" class="font-medium text-sm text-slate-700"></span>
+    </label>
+    
+  <select 
+    x-model="dbRole"
+    @change="$wire.updateGroupRole(user.id, user.name, dbRole)"
+    class="block w-28 rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
 >
-</button> 
-                                    
-                                    
-                                    </span>
-                                        </div>
+        @foreach ($this->availableRoles as $role)
+            <option value="{{ $role['value'] }}">{{ $role['label'] }}</option>
+        @endforeach
+    </select>
+    
+    <span x-text="status" class="font-medium text-sm text-slate-700 w-24 text-center capitalize"></span>
+    
+    <span>   
+        <button 
+            type="button"
+            x-text="status === 'non-member' ? 'Add user' : 'Remove user'"
+            @click="
+                status = (status === 'member' ? 'non-member' : 'member');
+                $wire.toggleGroupUser(user.id, user.name, dbRole, status);
+            "   
+            class="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm"
+        >
+        </button> 
+    </span>
+</div>
                                     </template>
                                 </div>
                             </div>
@@ -552,6 +562,7 @@ document.addEventListener('alpine:init', () => {
         sessions: {}, 
         activeChatId: null,
         editChatId: null,
+        editGroupName: '',
         message: '',
         results: [],
         searchQuery: '',
@@ -667,6 +678,8 @@ console.log(e);
 
  async setEditChat(id, type, name, shouldScroll = true) {
   this.editChatId = id;
+  this.editGroupName = name;
+   
 
 
 },

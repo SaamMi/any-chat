@@ -317,43 +317,47 @@ public function save()
         ]);
     }
 }
-
-public function saveGroup($groupId)
+public function saveGroup($groupId,$groupName)
 {
+    $group = Group::find($groupId);
 
-
-
-dd($this->groupRows);
-    $admin = Auth::user();
-    
-    // Optional: Fetch the group if you need to reliably save the 'group_name'
-    $group = \SaamMi\AnyChat\Models\Group::find($groupId);
-    $groupName = $group ? $group->name : $this->name;
-
-   /* $admin->currentTeam->groupMemberships()->firstOrCreate([
-        'group_name' => $groupName,
-        'group_id'   => $groupId,
-        'user_id'    => $admin->id,
-        'role'       => 'admin'
-    ]);  */
-
-
-
-    foreach ($this->rows as $row) {
-        // Skip the empty placeholder row if no users were selected
-        if(empty($row['user_id'])) continue; 
-
-        // Pass a standard associative array
-        $admin->currentTeam->groupMemberships()->create([
-            'group_name' => $groupName,
-            'group_id'   => $groupId,
-            'user_id'    => $row['user_id'],
-            'role'       => $row['role']
-        ]);
+    if (!$group) {
+        return;
     }
-}
-    
 
+    foreach ($this->groupRows as $row) {
+        // Skip empty placeholder
+        if (empty($row['user_id'])) {
+            continue;
+        }
+
+        if ($row['status'] === 'member') {
+            // Attach user to group or update their role if they are already in the group
+            DB::table('group_members')->updateOrInsert(
+                [
+                    'group_id' => $groupId,
+                    'group_name' => $groupName,
+                    'user_id'  => $row['user_id'],
+                    'team_id'   => Auth::user()->current_team_id,
+                ],
+                [
+                    'role'       => $row['role'],
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
+        } elseif ($row['status'] === 'non-member') {
+            // Remove user from the group
+            DB::table('group_members')
+                ->where('group_id', $groupId)
+                ->where('user_id', $row['user_id'])
+                ->delete();
+        }
+    }
+
+    // Reset the queue after successful save
+    $this->groupRows = [['user_id' => null, 'name' => '', 'role' => 'member', 'status' => '']];
+}
 
 
 
@@ -416,26 +420,35 @@ public function performSearch($query)
     }
 }
 
- public function toggleGroupUser($userId, $name, $role, $status)
+public function toggleGroupUser($userId, $name, $role, $status)
 {
-
-    // Search to see if the user has already been added to the rows array
-    $index = collect($this->rows)->search(function ($row) use ($userId) {
+    // Search to see if the user has already been added to the pending queue
+    $index = collect($this->groupRows)->search(function ($row) use ($userId) {
         return isset($row['user_id']) && $row['user_id'] == $userId;
     });
 
     if ($index !== false) {
-        // If they exist, the box was unchecked. Remove them.
-        unset($this->rows[$index]);
-        $this->rows = array_values($this->rows); // Re-index the array
+        // If they exist in the queue, DO NOT unset them. 
+        // Update their status and role to match their current state in the UI.
+        $this->groupRows[$index]['status'] = $status;
+        $this->groupRows[$index]['role']   = $role;
+        $this->groupRows[$index]['name']   = $name;
     } else {
-        // If they don't exist, the box was checked. Add them.
-        // Check if the very first row is just an empty placeholder and replace it
-        if (count($this->rows) === 1 && empty($this->rows[0]['user_id'])) {
-            $this->rows[0] = ['user_id' => $userId, 'name' => $name, 'role' => $role, 'status' => $status];
+        // If they don't exist in the queue, add them.
+        if (count($this->groupRows) === 1 && empty($this->groupRows[0]['user_id'])) {
+            $this->groupRows[0] = [
+                'user_id' => $userId, 
+                'name'    => $name, 
+                'role'    => $role, 
+                'status'  => $status
+            ];
         } else {
-            // Otherwise, append a new user row
-            $this->rows[] = ['user_id' => $userId, 'name' => $name, 'role' => $role, 'status' => $status];
+            $this->groupRows[] = [
+                'user_id' => $userId, 
+                'name'    => $name, 
+                'role'    => $role, 
+                'status'  => $status
+            ];
         }
     }
 }
@@ -452,6 +465,25 @@ public function updateRole($userId, $role)
     }
 }
 
+public function updateGroupRole($userId, $name, $role)
+{
+    // Find the specific user in the groupRows array
+    $index = collect($this->groupRows)->search(function ($row) use ($userId) {
+        return isset($row['user_id']) && $row['user_id'] == $userId;
+    });
+
+    if ($index !== false) {
+        // If they are already in the queue, just update their role
+        $this->groupRows[$index]['role'] = $role;
+    } else {
+        // If they aren't in the queue, add them with their name so the role change is saved
+        if (count($this->groupRows) === 1 && empty($this->groupRows[0]['user_id'])) {
+            $this->groupRows[0] = ['user_id' => $userId, 'name' => $name, 'role' => $role, 'status' => 'member'];
+        } else {
+            $this->groupRows[] = ['user_id' => $userId, 'name' => $name, 'role' => $role, 'status' => 'member'];
+        }
+    }
+}
 
 
    
