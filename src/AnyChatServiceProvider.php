@@ -14,7 +14,7 @@ use SaamMi\AnyChat\Models\GroupMembership;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Group;
-
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 
 
@@ -38,6 +38,8 @@ class AnyChatServiceProvider extends ServiceProvider
             ->withPivot(['role'])
             ->withTimestamps();
     });
+    
+    
     
     
 
@@ -87,6 +89,14 @@ EOT;
     file_put_contents($filePath, $newContent);
 }
 }
+
+
+Relation::morphMap([
+            'any_chat_user'  => Usee::class,
+            
+        ]);
+
+
     }
 
     public function register()
