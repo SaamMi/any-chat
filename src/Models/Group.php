@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\User;
-use SaamMi\AnyChat\Models\GroupMemberships;
+use SaamMi\AnyChat\Models\TeamGroups;
 
 
 
@@ -28,8 +28,8 @@ protected $fillable = [
 
       public function groupMembers()
     {
-        return $this->belongsToMany(User::class, 'group_members', 'group_id', 'user_id')
-            ->using(GroupMembership::class)
+        return $this->belongsToMany(User::class, 'team_groups', 'group_id', 'user_id')
+            ->using(TeamGroups::class)
             ->withPivot(['role'])
             ->withTimestamps();
     }

@@ -33,9 +33,9 @@ class AnyChatServiceProvider extends ServiceProvider
     });
     
     Team::resolveRelationUsing('groups', function ($teamModel) {
-        return $teamModel->belongsToMany(Group:class, 'team_groups','team_id','group_id')
+        return $teamModel->belongsToMany(Group::class, 'team_groups','team_id','group_id')
             ->using(TeamGroups::class)
-            ->withPivot([''role''])
+            ->withPivot(['role'])
             ->withTimestamps();
     });
     

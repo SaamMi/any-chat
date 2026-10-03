@@ -117,7 +117,7 @@ $members = $admin->currentTeam->members()->get()->map(fn ($member) => [
             $conversation->participants()->create([
                 'participantable_id' => $data['id'],
                 'participantable_type' => get_class($admin),
-                'role' => 'member' //to be changed from group_members table
+                'role' => 'member' //to be changed from team_groups table
             ]);
         }
         }
