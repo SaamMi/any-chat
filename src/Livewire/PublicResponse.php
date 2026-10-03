@@ -333,7 +333,7 @@ public function saveGroup($groupId,$groupName)
 
         if ($row['status'] === 'member') {
             // Attach user to group or update their role if they are already in the group
-            DB::table('group_members')->updateOrInsert(
+            DB::table('team_groups')->updateOrInsert(
                 [
                     'group_id' => $groupId,
                     'group_name' => $groupName,
@@ -348,7 +348,7 @@ public function saveGroup($groupId,$groupName)
             );
         } elseif ($row['status'] === 'non-member') {
             // Remove user from the group
-            DB::table('group_members')
+            DB::table('team_groups')
                 ->where('group_id', $groupId)
                 ->where('user_id', $row['user_id'])
                 ->delete();

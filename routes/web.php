@@ -31,6 +31,16 @@ Route::middleware(['auth'])->group(function () {
       ->name('chatresponse');
 });
 
+Route::prefix('{current_team}')
+    ->middleware(['auth', 'verified', EnsureTeamMembership::class])
+    ->group(function () {
+        Route::get($this->path . '/{chatId?}/{type?}', \SaamMi\AnyChat\Livewire\PublicResponse::class)
+            ->defaults('config', $config)
+            ->middleware($middleware)
+            ->name("anychat.panel.{$this->id}");
+    
+
+    });
 
 
 

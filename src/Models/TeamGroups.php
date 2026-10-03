@@ -10,14 +10,14 @@ use Illuminate\Support\Carbon;
 
 
 #[Fillable(['team_id', 'user_id', 'role', 'group_name','group_id'])]
-class GroupMembership extends Pivot
+class TeamGroups extends Pivot
 {
     /**
      * The table associated with the model.
      *
      * @var string
      */
-    protected $table = 'group_members';
+    protected $table = 'team_groups';
 
     /**
      * Indicates if the IDs are auto-incrementing.
