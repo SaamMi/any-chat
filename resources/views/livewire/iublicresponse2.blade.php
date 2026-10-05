@@ -44,39 +44,33 @@
         <div class="me-10 w-full pb-4 md:w-[220px]">
             
             {{-- Sidebar --}}
-           <flux:navlist>
-                <flux:navlist.item @click="createGroup">
+            <div class="md:w-[220px] bg-slate-900 shadow-2xl border-r border-slate-800 flex flex-col z-10 shrink-0">
+                <button @click="createGroup" class="text-white text-[10px]">
                     + Create group chat 
-                </flux:navlist.item>
+                </button>
 
-                <flux:navlist.item @click="editGroup">
+                <button @click="editGroup" class="text-white text-[10px]">
                     + Edit group chat 
-                </flux:navlist.item>
+                </button>
 
-                <flux:navlist.item @click="$wire.groupVisibility()">
+                <button @click="$wire.groupVisibility()" class="text-white text-[10px]">
                     group visibilty
-                </flux:navlist.item>
-            </flux:navlist>    
-
-
-             
+                </button>
                 
-                   
-                
-                    
+                <div class="flex-1 overflow-y-auto custom-scrollbar">
+                    <div class="p-4 bg-slate-800/50 text-[10px] font-bold text-slate-500 uppercase tracking-widest flex justify-between items-center">
+                        <span>Active Support Queue</span>
+                    </div>
 
                     <div class="wire:ignore p-4 border-b border-slate-200 bg-slate-50">
-                       
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Search Conversations</label>
                         
                         <div class="relative">
-                            <flux:input 
-                                   :label="__('Search Conversations')"
-                                   type="text" 
+                            <input type="text" 
                                    x-model="searchQuery" 
                                    @input.debounce.500ms="performSearch(searchQuery)"
                                    placeholder="Find message..." 
-                                   required autofocus autocomplete="name"
-                                />
+                                   class="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg pl-3 pr-20 py-2 outline-none focus:ring-2 focus:ring-blue-500">
                             
                             {{-- Navigation Controls --}}
                             <div x-show="results.length > 0" class="absolute right-2 top-1.5 z-20 flex items-center gap-1 bg-slate-100 rounded px-1 border border-slate-200 shadow-sm">
@@ -84,9 +78,9 @@
                                 <button @click="navigateResults('prev')" class="p-1 hover:bg-slate-200 rounded text-slate-600">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg>
                                 </button>
-                                <flux:button @click="navigateResults('next')" class="p-1 hover:bg-slate-200 rounded text-slate-600">
+                                <button @click="navigateResults('next')" class="p-1 hover:bg-slate-200 rounded text-slate-600">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
-                                </flux:button>
+                                </button>
                             </div>
                         </div>
 
@@ -95,7 +89,7 @@
                              x-transition
                              class="mt-2 max-h-48 overflow-y-auto bg-white rounded-lg shadow-xl absolute w-64 z-20 border border-slate-200">
                             <template x-for="(result, index) in results" :key="result.id">
-                                <flux:button @click="activeResultIndex = index; jumpToMessage(result)" 
+                                <button @click="activeResultIndex = index; jumpToMessage(result)" 
                                         :class="activeResultIndex === index ? 'bg-blue-50' : ''"
                                         class="w-full text-left p-2 border-b border-slate-100 hover:bg-slate-50 transition-colors">
                                     <div class="flex justify-between">
@@ -103,13 +97,13 @@
                                         <span class="text-[9px] text-slate-400" x-text="result.chatType ? result.chatType.split('\\').pop() : ''"></span>
                                     </div>
                                     <div class="text-slate-600 text-xs truncate" x-text="result.body"></div>
-                                </flux:button>
+                                </button>
                             </template>
                         </div>
                     </div>
 
                     {{-- Group Queue --}}
-                     <flux:heading size="xl" level="1">{{ __('Your groups') }}</flux:heading>
+                    <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">GroupChat Users</div>
                 
                     @foreach($group as $gr)
                         <button @click="setActiveChat('group{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
@@ -123,7 +117,7 @@
                     @endforeach
 
                     {{-- Guest Queue --}}
-                    <flux:heading size="xl" level="1">{{ __('Support guests') }}</flux:heading>
+                    <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">Guest Users</div>
                     
                     {{-- Poll every 15 seconds to fetch incoming new guest chat sessions seamlessly --}}
                     <div wire:poll.15s class="flex flex-col">
@@ -144,10 +138,9 @@
                         @endforeach
                     </div>
 
-                     <flux:heading size="xl" level="1">{{ __('Direct chat users') }}</flux:heading>
+                    <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30">Registered Users</div>
                 
                     {{-- Registered Users Queue --}}
-                    <div>
                     @foreach($users as $user)
                         <button @click="setActiveChat('{{ $user->id }}', '{{ addslashes(get_class($user)) }}', '{{ addslashes($user->name) }}')"
                                 :class="activeChatId == '{{ $user->id }}' ? 'bg-slate-800' : 'hover:bg-slate-800/50'"
@@ -164,10 +157,8 @@
                             </div>
                         </button>
                     @endforeach
-                    </div>
-                
-             
-            
+                </div>
+            </div>
         </div>
 
         <flux:separator class="md:hidden" />

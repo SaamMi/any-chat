@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('role');
             $table->timestamps();
 
-            $table->unique(['group_id', 'user_id']);
+           // $table->unique(['group_id', 'user_id']);
         });
     }
 

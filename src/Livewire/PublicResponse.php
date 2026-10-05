@@ -156,6 +156,29 @@ $currentGroup = Group::find($editChatId);
 
       //  dd($result);
 }
+
+public function groupVisibility()
+{
+    $result = Auth::user()
+    ->ownedTeams()
+    ->with(['groups' => function ($query) {
+        // Filter the belongsToMany relation directly via the pivot column
+        $query->wherePivotIn('role', ['admin']); 
+        
+        // Note: If your role is an Enum, use the value property:
+        // $query->wherePivotIn('role', [TeamRole::Owner->value, TeamRole::Admin->value]);
+    }])
+    ->get()
+    ->mapWithKeys(function ($team) {
+        // Map the results to your requested [team_id => [group_names]] format
+        return [$team->id => $team->groups->pluck('name')->toArray()];
+        
+        // If you prefer group IDs instead of names, simply change 'name' to 'id'
+    })
+    ->toArray();
+//dd($result);
+
+}
 public function generateAiReply($chatId)
 {
     // 1. Fetch recent history and format it for AI consumption

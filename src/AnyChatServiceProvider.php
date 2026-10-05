@@ -13,7 +13,7 @@ use SaamMi\AnyChat\Services\NullAiCopilot;
 use SaamMi\AnyChat\Models\TeamGroups;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\Group;
+use SaamMi\AnyChat\Models\Group;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 
