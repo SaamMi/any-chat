@@ -56,7 +56,11 @@
                 <flux:navlist.item @click="$wire.groupVisibility()">
                     group visibilty
                 </flux:navlist.item>
-            </flux:navlist>    
+            </flux:navlist>  
+            
+            
+
+               <flux:separator />
 
 
              
@@ -109,7 +113,7 @@
                     </div>
 
                     {{-- Group Queue --}}
-                     <flux:heading size="xl" level="1">{{ __('Your groups') }}</flux:heading>
+                     <flux:heading size="lg" level="1">{{ __('Your groups') }}</flux:heading>
                 
                     @foreach($group as $gr)
                         <button @click="setActiveChat('group{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
@@ -228,11 +232,12 @@
                                     </button>
 
                                     {{-- Text Input --}}
-                                    <input type="text" 
+                                    <flux:input type="text" 
                                            x-model="message" 
                                            @keydown.enter="sendChatMessage()" 
                                            placeholder="Type your reply or ask AI..." 
-                                           class="w-full border border-slate-300 rounded-2xl px-4 py-3 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all min-w-0">
+                                           required autofocus autocomplete="name"
+                                            />
                                 </div>
                             </div>
                         </div>
@@ -241,7 +246,7 @@
                     {{-- Empty State --}}
                     <div x-show="!activeChatId" class="flex-1 flex items-center justify-center text-slate-400 bg-slate-50 min-w-0">
                         <div class="text-center">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            <svg class="w-full h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                             <p>Select a conversation to start messaging</p>
                         </div>
                     </div>

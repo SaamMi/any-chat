@@ -7,6 +7,8 @@ use SaamMi\AnyChat\Http\Middleware\CustomCookie;
 use SaamMi\AnyChat\Livewire\Publicchat;
 use SaamMi\AnyChat\Livewire\PublicResponse;
 use SaamMi\AnyChat\Models\Message;
+use SaamMi\AnyChat\Livewire\CreateGroup;
+use SaamMi\AnyChat\Livewire\EditGroup;
 
 Route::get('/welcome', function () {
     return view('welcome');
@@ -26,10 +28,10 @@ Route::get('/cha', Publicchat::class)
 ->middleware(CustomCookie::class); */
 
 // });
-Route::middleware(['auth'])->group(function () { 
+/*Route::middleware(['auth'])->group(function () { 
      Route::get('/chatresponse',PublicResponse::class)
       ->name('chatresponse');
-});
+});  */
 
 /*Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
@@ -42,7 +44,19 @@ Route::middleware(['auth'])->group(function () {
 
     }); */
 
+Route::middleware(['auth'])->group(function () {
+    //Route::redirect('settings', 'settings/profile');
 
+    Route::livewire('settings/chat', PublicResponse::class)->name('chatresponse');
+
+
+    Route::livewire('settings/create', CreateGroup::class)->name('group.create');
+
+     Route::livewire('settings/edit', EditGroup::class)->name('group.edit');
+
+
+
+});
 
 Route::get('/fetch-messages', [Publicchat::class, 'msg'])
     ->name('fetch-messages');

@@ -53,6 +53,11 @@ class AnyChatServiceProvider extends ServiceProvider
         Livewire::component('anychat-widget', Publicchat::class);
         Blade::component('anychat', Publicchat::class);
 
+          //Blade::component('layout', Publicchat::class);
+
+           Blade::anonymousComponentPath(__DIR__.'/../resources/views/components');
+
+
         Livewire::component('anychat-dashboard', PublicResponse::class);
 
         // ONLY register the route for testing or local development

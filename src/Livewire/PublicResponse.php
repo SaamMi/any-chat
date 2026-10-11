@@ -32,8 +32,8 @@ class PublicResponse extends Component
 
     public $searchQuery = '';
     // Properties to catch the URL parameters
-    public $initialChatId;
-    public $initialChatType;
+   // public $initialChatId;
+   // public $initialChatType;
     //public array $rows = [];
     public $searchableUsers;
     //public array $selectedUsers = [];
@@ -560,7 +560,7 @@ public function updateGroupRole($userId, $name, $role)
                         })
                         ->toArray();
 
-        $view = view('anychat::livewire.publicresponse', [
+        $view = view('anychat::livewire.empty', [
             'users'              => \App\Models\User::all(),
             'guestConversations' => $guestConversations,
             'group'              => $groupUsers,
@@ -568,12 +568,12 @@ public function updateGroupRole($userId, $name, $role)
         ]);
 
         // Only explicitly set the layout for the standalone route
-        if (!request()->routeIs('chatresponse')) {
+      /*  if (!request()->routeIs('chatresponse')) {
             // Use your package's namespace to load the bundled clean layout
             $view->layout('anychat::panel-master', [
             'config' => $this->config 
-        ]);
-        }
+        ]); 
+        } */
 
         // If it's the internal route, Livewire will naturally fall back 
         // to the host app's default components.layouts.app
