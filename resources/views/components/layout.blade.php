@@ -53,13 +53,11 @@
                     
                 </flux:navlist.item>
 
-                <flux:navlist.item @click="createGroup" :href="route('group.create')" wire:navigate>{{ __('Create group chat') }}
-                    
-                </flux:navlist.item>
+               <flux:navlist.item :href="route('group.create')" wire:navigate>{{ __('Create group chat') }}
+</flux:navlist.item>
 
-                <flux:navlist.item @click="editGroup" :href="route('group.edit')" wire:navigate>{{ __('Edit group chat') }}
-                
-                </flux:navlist.item>
+<flux:navlist.item :href="route('group.edit')" wire:navigate>{{ __('Edit group chat') }}
+</flux:navlist.item>
 
                 <flux:navlist.item @click="$wire.groupVisibility()">
                     group visibilty

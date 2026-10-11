@@ -5,10 +5,7 @@
                  :group="$group">
 
                  
-<div x-show="displayGroupModal" 
-                         x-cloak
-                         class="p-5 bg-white rounded-xl shadow-2xl absolute top-4 left-4 right-4 z-30 border border-slate-200 overflow-visible"
-                         @click.away="displayGroupModal = false">
+<div class="p-5 bg-white rounded-xl border border-slate-200 overflow-visible w-full">
 
                         <div class="flex justify-between items-center mb-4">
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Group Name</label>

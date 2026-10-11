@@ -1,7 +1,11 @@
-  <div  
-                         x-cloak
-                         class="flex flex-row w-full gap-6 p-6 bg-white rounded-xl shadow-2xl absolute top-4 left-4 right-4 z-30 border border-slate-200 overflow-visible"
-                         @click.away="editGroupModal = false">
+  <x-layout :heading="__('Edit Group')" 
+          :subheading="__('Manage your group members')"
+          :users="$users"
+          :guest-conversations="$guestConversations"
+          :group="$group">
+
+    <!-- Removed x-cloak, absolute positioning, z-index, and @click.away -->
+    <div class="flex flex-row w-full gap-6 p-6 bg-white rounded-xl border border-slate-200 overflow-visible">
 
                         <!-- LEFT COLUMN: Takes up all available remaining space (flex-1) -->
                         <div class="flex-1 flex flex-col min-w-0">
@@ -139,3 +143,4 @@
                             </div>
                         </div>
                     </div>
+</x-layout> 
