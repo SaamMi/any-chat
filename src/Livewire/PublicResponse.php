@@ -50,26 +50,31 @@ class PublicResponse extends Component
    
 
     // Livewire automatically injects the route parameters and defaults here
-    public function mount($config = [], User $user)
+  public $groupId;
+    public $preloadedChat = null; // Store the initial server-side data
+
+    public function mount($groupId = null, $config = [])
     {
+        $this->groupId = $groupId;
         $this->config = $config;
         $this->path = '/' . ($config['id'] ?? 'anychat');
-        //$this->initialChatId = $chatId;
-        //$this->initialChatType = $type;
         $this->persistenceMode = $config['persistenceMode'] ?? 'stateless';
         
-      // $user = Auth::user();
-     /*  $this->rows = $user->currentTeam->members()->get()->map(function (User $user) {
-            return [
-                'user_id' => $user->id,
-                'name' => $user->name,
-                //'role' => $user->pivot->role ?? null,
+        // If the URL has a groupId, fetch the history immediately on the server
+        if ($this->groupId) {
+            $formattedId = 'Group' . $this->groupId; // Match your existing format
+            
+            // Pre-fetch the history using your existing method
+            $history = $this->selectGroup($formattedId, \App\Models\User::class);
+            
+            // Package it for Alpine to consume instantly
+            $this->preloadedChat = [
+                'id' => $formattedId,
+                'type' => '\\App\\Models\\User',
+                'name' => 'Group ' . $this->groupId, // Or query the actual group name
+                'messages' => $history
             ];
-        })->toArray();   */
-
-    //$this->searchableUsers = $user->currentTeam->members()->get()->toArray();
-
-     //dd($this->rows);
+        }
     }
 
 

@@ -47,7 +47,7 @@ Route::get('/cha', Publicchat::class)
 Route::middleware(['auth'])->group(function () {
     //Route::redirect('settings', 'settings/profile');
 
-    Route::livewire('settings/chat', PublicResponse::class)->name('chatresponse');
+    Route::get('settings/chat/{groupId?}', PublicResponse::class)->name('chatresponse');
 
 
     Route::livewire('settings/create', CreateGroup::class)->name('group.create');
