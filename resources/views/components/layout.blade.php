@@ -1,22 +1,16 @@
 @props([
-    'type' => 'xs',
+    'heading' => '',
+    'subheading' => '',
     'variant' => 'outline',
     'color' => null,
-    'height' => '450px',
-    'width' => '380px',
     'primaryColor' => null,
     'adminColor' => null,
-    'size' => 'base',
-    'allowEmojis' => false,
-    'allowUploads' => false,
-    'users' => [],               
-    'guestConversations' => [],  
-    'group' => [],               
+    'users' => [],
+    'guestConversations' => [],
+    'group' => [],
 ])
 
 @php
-    use Illuminate\Support\Arr;
-
     $defaultUserBg = match ($color) {
         'red'  => '#ef4444',
         'zinc' => '#18181b',
@@ -25,109 +19,140 @@
 
     $pColor = $primaryColor ?? $defaultUserBg;
     $aColor =$adminColor ?? '#f1f5f9';
-
-    $windowClasses = Arr::toCssClasses([
-        'bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 rounded-2xl',
-        'text-sm' => $size === 'base',
-        'text-xs' => $size === 'xs',
-    ]);
 @endphp
 
-{{-- 1. Outer Gatekeeper: Waits for the script to finish registering Alpine.data --}}
-<div x-data="{ isLoaded: window.chatAdminRegistered || false }" 
-     @chat-admin-ready.window="isLoaded = true" 
-     class="w-full anychat-container">
+<section class="w-full anychat-container">
+    <div x-data="chatAdmin" class="w-full">
+        
+        {{-- Page Header (Matches partials.settings-heading) --}}
+        <div class="relative mb-6 w-full">
+            <flux:heading size="xl" level="1">{{ __('Chat') }}</flux:heading>
+            <flux:subheading size="lg" class="mb-6">{{ __('Manage your conversations, groups, and support requests') }}</flux:subheading>
+            <flux:separator variant="subtle" />
+        </div>
 
-    {{-- 2. Inner Template: Only mounts the DOM when Alpine is fully ready --}}
-    <template x-if="isLoaded">
-        <div x-data="chatAdmin" class="w-full">
-            
-            <div class="relative mb-6 w-full">
-                <flux:heading size="xl" level="1">{{ __('Chat') }}</flux:heading>
-                <flux:subheading size="lg" class="mb-6"></flux:subheading>
+        <div class="flex items-start max-md:flex-col">
+            {{-- Left Sidebar --}}
+            <div class="me-10 w-full pb-4 md:w-[240px] space-y-6">
+                
+                <flux:navlist>
+                    <flux:navlist.group :heading="__('Actions')">
+                        <flux:navlist.item icon="plus" :href="route('group.create')" :current="request()->routeIs('group.create')" wire:navigate>
+                            {{ __('Create group chat') }}
+                        </flux:navlist.item>
+                        <flux:navlist.item icon="pencil-square" :href="route('group.edit')" :current="request()->routeIs('group.edit')" wire:navigate>
+                            {{ __('Edit group chat') }}
+                        </flux:navlist.item>
+                        <flux:navlist.item icon="eye" @click="$wire.groupVisibility()">
+                            {{ __('Group visibility') }}
+                        </flux:navlist.item>
+                        <flux:navlist.item icon="chat-bubble-left-right" :href="route('chatresponse')" :current="request()->routeIs('chatresponse')" wire:navigate>
+                            {{ __('Chats') }}
+                        </flux:navlist.item>
+                    </flux:navlist.group>
+                </flux:navlist>
+
                 <flux:separator variant="subtle" />
-            </div>
 
-            <div class="flex items-start max-md:flex-col">
-                <div class="me-10 w-full pb-4 md:w-[220px]">
+                {{-- Conversation Search --}}
+                <div wire:ignore class="relative">
+                    <flux:input 
+                        :label="__('Search conversations')" 
+                        type="search" 
+                        icon="magnifying-glass"
+                        x-model="searchQuery" 
+                        @input.debounce.500ms="performSearch(searchQuery)" 
+                        :placeholder="__('Find message...')" 
+                        autocomplete="off" 
+                    />
                     
-                    {{-- Sidebar --}}
-                    <flux:navlist>
-                        <flux:navlist.item :href="route('group.create')" wire:navigate>{{ __('Create group chat') }}</flux:navlist.item>
-                        <flux:navlist.item :href="route('group.edit')" wire:navigate>{{ __('Edit group chat') }}</flux:navlist.item>
-                        <flux:navlist.item @click="$wire.groupVisibility()">group visibilty</flux:navlist.item>
-                    </flux:navlist>  
-
-                    <flux:separator />
-
-                    <div class="wire:ignore p-4 border-b border-slate-200 bg-slate-50">
-                        <div class="relative">
-                            <flux:input :label="__('Search Conversations')" type="text" x-model="searchQuery" @input.debounce.500ms="performSearch(searchQuery)" placeholder="Find message..." required autofocus autocomplete="name"/>
-                            
-                            <div x-show="results.length > 0" class="absolute right-2 top-1.5 z-20 flex items-center gap-1 bg-slate-100 rounded px-1 border border-slate-200 shadow-sm">
-                                <span class="text-[10px] text-slate-500 font-mono" x-text="(activeResultIndex + 1) + '/' + results.length"></span>
-                                <button @click="navigateResults('prev')" class="p-1 hover:bg-slate-200 rounded text-slate-600"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 15l7-7 7 7"/></svg></button>
-                                <flux:button @click="navigateResults('next')" class="p-1 hover:bg-slate-200 rounded text-slate-600"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg></flux:button>
-                            </div>
-                        </div>
-
-                        <div x-show="searchQuery.length > 2 && results.length > 0" x-transition class="mt-2 max-h-48 overflow-y-auto bg-white rounded-lg shadow-xl absolute w-64 z-20 border border-slate-200">
-                            <template x-for="(result, index) in results" :key="result.id">
-                                <flux:button @click="activeResultIndex = index; jumpToMessage(result)" :class="activeResultIndex === index ? 'bg-blue-50' : ''" class="w-full text-left p-2 border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                    <div class="flex justify-between"><span class="font-bold text-blue-600 text-[10px]" x-text="result.sender"></span><span class="text-[9px] text-slate-400" x-text="result.chatType ? result.chatType.split('\\').pop() : ''"></span></div>
-                                    <div class="text-slate-600 text-xs truncate" x-text="result.body"></div>
-                                </flux:button>
-                            </template>
+                    <div x-cloak x-show="results.length > 0" class="mt-2 flex items-center justify-between rounded-md bg-zinc-100 dark:bg-zinc-800 px-2.5 py-1 border border-zinc-200 dark:border-zinc-700">
+                        <flux:text size="sm" class="font-mono text-xs" x-text="(activeResultIndex + 1) + ' / ' + results.length" />
+                        <div class="flex items-center gap-1">
+                            <flux:button size="xs" variant="ghost" icon="chevron-up" @click="navigateResults('prev')" />
+                            <flux:button size="xs" variant="ghost" icon="chevron-down" @click="navigateResults('next')" />
                         </div>
                     </div>
 
-                    <flux:navlist>
-                        <flux:navlist.item :href="route('chatresponse')" wire:navigate>{{ __(' Chats') }}</flux:navlist.item>
-                    </flux:navlist>
-
-                    <flux:heading size="lg" level="1">{{ __('Your groups') }}</flux:heading>
-                    @foreach($group as $gr)
-                        <a @click="setActiveChat('group{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
-                           :class="activeChatId == '{{ $gr['id'] }}' ? 'bg-slate-800' : 'hover:bg-slate-800/50'"
-                           href="{{ route('chatresponse', $gr['id']) }}" wire:navigate class="w-full flex items-center justify-between p-4 transition-colors border-b border-slate-800">
-                            <div class="flex flex-col text-left"><span class="font-bold text-sm text-zinc-400">{{ $gr['name'] }}</span></div>
-                        </a>
-                    @endforeach
-
-                    <flux:heading size="xl" level="1">{{ __('Support guests') }}</flux:heading>
-                    <div wire:poll.15s class="flex flex-col">
-                        @foreach($guestConversations as $guest)
-                            <button @click="setActiveChat('{{ $guest['id'] }}', '{{ addslashes($guest['type']) }}', '{{ addslashes($guest['name']) }}')" :class="activeChatId == '{{ $guest['id'] }}' ? 'bg-slate-800 border-l-4 border-blue-500' : 'hover:bg-slate-800/50'" class="w-full flex items-center justify-between p-4 border-b border-slate-800 transition-all text-left">
-                                <span class="font-bold text-sm text-zinc-400">{{ $guest['name'] }}</span>
-                                <div x-cloak x-show="getMatchCount('{{ $guest['id'] }}') > 0" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm"><span x-text="getMatchCount('{{ $guest['id'] }}')"></span></div>
+                    <div x-cloak 
+                         x-show="searchQuery.length > 2 && results.length > 0" 
+                         x-transition 
+                         class="mt-1 max-h-48 overflow-y-auto bg-white dark:bg-zinc-800 rounded-lg shadow-lg absolute w-full z-20 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-100 dark:divide-zinc-700/50">
+                        <template x-for="(result, index) in results" :key="result.id">
+                            <button type="button"
+                                    @click="activeResultIndex = index; jumpToMessage(result)" 
+                                    :class="activeResultIndex === index ? 'bg-zinc-100 dark:bg-zinc-700/50' : ''" 
+                                    class="w-full text-left p-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-700/30 transition-colors">
+                                <div class="flex justify-between items-center mb-0.5">
+                                    <span class="font-semibold text-xs text-zinc-900 dark:text-zinc-100" x-text="result.sender"></span>
+                                    <span class="text-[10px] text-zinc-400" x-text="result.chatType ? result.chatType.split('\\').pop() : ''"></span>
+                                </div>
+                                <div class="text-zinc-500 dark:text-zinc-400 text-xs truncate" x-text="result.body"></div>
                             </button>
-                        @endforeach
-                    </div>
-
-                    <flux:heading size="xl" level="1">{{ __('Direct chat users') }}</flux:heading>
-                    <div>
-                        @foreach($users as $user)
-                            <button @click="setActiveChat('{{ $user->id }}', '{{ addslashes(get_class($user)) }}', '{{ addslashes($user->name) }}')" :class="activeChatId == '{{ $user->id }}' ? 'bg-slate-800' : 'hover:bg-slate-800/50'" class="w-full flex items-center justify-between p-4 transition-colors border-b border-slate-800">
-                                <div class="flex flex-col text-left"><span class="font-bold text-sm text-zinc-400">{{ $user->name }}</span></div>
-                                <div x-cloak x-show="getMatchCount('{{ $user->id }}') > 0" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm"><span x-text="getMatchCount('{{ $user->id }}')"></span></div>
-                            </button>
-                        @endforeach
+                        </template>
                     </div>
                 </div>
 
-                <flux:separator class="md:hidden" />
+                <flux:separator variant="subtle" />
 
-                <div class="flex-1 self-stretch max-md:pt-6">
-                    <flux:heading>{{ $heading ?? '' }}</flux:heading>
-                    <flux:subheading>{{ $subheading ?? '' }}</flux:subheading>
-                    <div>
-                        {{ $slot }}
-                    </div> 
+                {{-- Groups, Guests & Direct Users --}}
+                <flux:navlist>
+                    <flux:navlist.group :heading="__('Your groups')">
+                        @foreach($group as $gr)
+                            <flux:navlist.item 
+                                :href="route('chatresponse', $gr['id'])" 
+                                wire:navigate
+                                @click="setActiveChat('group{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')"
+                                ::class="activeChatId == 'group{{ $gr['id'] }}' \vert{}\vert{} activeChatId == '{{$gr['id'] }}' ? 'bg-zinc-100 dark:bg-zinc-800 font-medium' : ''">
+                                {{ $gr['name'] }}
+                            </flux:navlist.item>
+                        @endforeach
+                    </flux:navlist.group>
+
+                    <div wire:poll.15s>
+                        <flux:navlist.group :heading="__('Support guests')">
+                            @foreach($guestConversations as $guest)
+                                <flux:navlist.item 
+                                    @click="setActiveChat('{{ $guest['id'] }}', '{{ addslashes($guest['type']) }}', '{{ addslashes($guest['name']) }}')"
+                                    ::class="activeChatId == '{{ $guest['id'] }}' ? 'bg-zinc-100 dark:bg-zinc-800 font-medium' : ''">
+                                    <div class="flex items-center justify-between w-full">
+                                        <span class="truncate">{{ $guest['name'] }}</span>
+                                        <flux:badge size="sm" color="blue" x-cloak x-show="getMatchCount('{{ $guest['id'] }}') > 0" x-text="getMatchCount('{{ $guest['id'] }}')" />
+                                    </div>
+                                </flux:navlist.item>
+                            @endforeach
+                        </flux:navlist.group>
+                    </div>
+
+                    <flux:navlist.group :heading="__('Direct chat users')">
+                        @foreach($users as $user)
+                            <flux:navlist.item 
+                                @click="setActiveChat('{{ $user->id }}', '{{ addslashes(get_class($user)) }}', '{{ addslashes($user->name) }}')"
+                                ::class="activeChatId == '{{ $user->id }}' ? 'bg-zinc-100 dark:bg-zinc-800 font-medium' : ''">
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="truncate">{{ $user->name }}</span>
+                                    <flux:badge size="sm" color="blue" x-cloak x-show="getMatchCount('{{ $user->id }}') > 0" x-text="getMatchCount('{{ $user->id }}')" />
+                                </div>
+                            </flux:navlist.item>
+                        @endforeach
+                    </flux:navlist.group>
+                </flux:navlist>
+            </div>
+
+            <flux:separator class="md:hidden" />
+
+            {{-- Main Content Slot (Matches x-pages::settings.layout) --}}
+            <div class="flex-1 self-stretch max-md:pt-6">
+                <flux:heading>{{ $heading }}</flux:heading>
+                <flux:subheading>{{ $subheading }}</flux:subheading>
+
+                <div class="mt-5 w-full">
+                    {{ $slot }}
                 </div>
             </div>
         </div>
-    </template>
-</div>
+    </div>
+</section>
 
 <style>
     .anychat-container {
@@ -146,218 +171,185 @@
 
 @script
 <script>
-(() => {
-    const registerChatAdmin = () => {
-        // If it's already registered by a previous navigation, skip
-        if (window.chatAdminRegistered) {
-            // Dispatch immediately for subsequent wire:navigate loads
-            window.dispatchEvent(new CustomEvent('chat-admin-ready'));
-            return;
-        }
+    Alpine.data('chatAdmin', () => ({
+        sessions: {}, 
+        activeChatId: null,
+        editChatId: null,
+        editGroupName: '',
+        message: '',
+        results: [],
+        searchQuery: '',
+        userSearchQuery: '',
+        activeResultIndex: -1, 
+        isDrafting: false,
+        allResults: [],
+        activeNotifications: [],
+        displayGroupModal: false,
+        editGroupModal: false,
 
-        Alpine.data('chatAdmin', () => ({
-            sessions: {}, 
-            activeChatId: null,
-            editChatId: null,
-            editGroupName: '',
-            message: '',
-            results: [],
-            searchQuery: '',
-            userSearchQuery: '',
-            activeResultIndex: -1, 
-            isDrafting: false,
-            allResults: [],
-            activeNotifications: [],
-            displayGroupModal: false,
-            editGroupModal: false,
+        async draftWithAI() {
+            if (!this.activeChatId || this.isDrafting) return;
+            this.isDrafting = true;
+            try {
+                const suggestion = await this.$wire.generateAiReply(this.activeChatId);
+                if (suggestion) this.message = suggestion;
+            } catch (error) {
+                console.error("AI generation failed:", error);
+                alert("Could not reach the AI intent classifier.");
+            } finally {
+                this.isDrafting = false;
+            }
+        },
+        
+        editGroup() { this.editGroupModal = true; },
+        createGroup() { this.displayGroupModal = true; },
 
-            async draftWithAI() {
-                if (!this.activeChatId || this.isDrafting) return;
-                this.isDrafting = true;
-                try {
-                    const suggestion = await this.$wire.generateAiReply(this.activeChatId);
-                    if (suggestion) this.message = suggestion;
-                } catch (error) {
-                    console.error("AI generation failed:", error);
-                    alert("Could not reach the AI intent classifier.");
-                } finally {
-                    this.isDrafting = false;
-                }
-            },
+        async setActiveChat(id, type, name, shouldScroll = true) {
+            this.activeChatId = id;
             
-            editGroup(){ this.editGroupModal = true; },
-            createGroup(){ this.displayGroupModal = true; },
+            const safeId = String(id);
+            const rawId = safeId.startsWith('group') ? safeId.replace('group', '') : safeId;
 
-            async setActiveChat(id, type, name, shouldScroll = true) {
-                this.activeChatId = id;
-                
-                // Force to string to prevent type errors on numeric IDs
-                const safeId = String(id);
-                const rawId = safeId.startsWith('group') ? safeId.replace('group', '') : safeId;
+            if (!this.sessions[id]) {
+                this.sessions[id] = { metadata: { name: name, id: id, type: type }, messages: [] };
+            }
 
-                if (!this.sessions[id]) {
-                    this.sessions[id] = { metadata: { name: name, id: id, type: type }, messages: [] };
-                }
+            let history;  
+            if (safeId.startsWith('group')) {
+                history = await this.$wire.selectGroup(id, type);
+            } else {  
+                history = await this.$wire.selectUser(id, type);
+            }
+            this.sessions[id].messages = history;
 
-                let history;  
-                if (safeId.startsWith('group')) {
-                    history = await this.$wire.selectGroup(id, type);
-                } else {  
-                    history = await this.$wire.selectUser(id, type);
-                }
-                this.sessions[id].messages = history;
+            this.syncCurrentChatResults();
+            
+            if (window.currentEchoChannel) {
+                window.Echo.leave(window.currentEchoChannel);
+            }
 
-                this.syncCurrentChatResults();
-                
-                if (window.currentEchoChannel) {
-                    window.Echo.leave(window.currentEchoChannel);
-                }
-
-                window.currentEchoChannel = `chat.${rawId}`;
-                window.Echo.private(window.currentEchoChannel).listen('.message.new', (e) => {
-                    let data = e.message || e;
-                    this.sessions[id].messages.push({
-                        body: data.message || data.body || data.content,
-                        auth: 0,
-                        id: data.id || Date.now(),
-                        time: data.time || new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-                    });
-                    this.sessions = { ...this.sessions };
-                    this.$nextTick(() => this.scrollToBottom(id));
+            window.currentEchoChannel = `chat.${rawId}`;
+            window.Echo.private(window.currentEchoChannel).listen('.message.new', (e) => {
+                let data = e.message || e;
+                this.sessions[id].messages.push({
+                    body: data.message || data.body || data.content,
+                    auth: 0,
+                    id: data.id || Date.now(),
+                    time: data.time || new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
                 });
-
-                this.sessions = { ...this.sessions };
-                if (shouldScroll) this.$nextTick(() => this.scrollToBottom(id));
-            },
-
-            async setEditChat(id, type, name, shouldScroll = true) {
-                this.editChatId = id;
-                this.editGroupName = name;
-            },
-
-            async sendChatMessage() {
-                if (!this.message.trim() || !this.activeChatId) return;
-
-                const text = this.message;
-                const id = this.activeChatId;
-                this.message = '';
-
-                await this.$wire.sendMessage(text);
-                
-                this.sessions[id].messages.push({ 
-                    body: text, senderName: text, auth: 1, id: Date.now(),
-                    time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-                });
-              
                 this.sessions = { ...this.sessions };
                 this.$nextTick(() => this.scrollToBottom(id));
-            },
+            });
 
-            async jumpToMessage(result) {
-                await this.setActiveChat(result.chatId, result.chatType, result.sender, false);
-                setTimeout(() => {
-                    const textElement = document.getElementById(`msg-${result.id}`);
-                    if (textElement) {
-                        textElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        const bubble = textElement.closest('.msg-bubble');
-                        if (bubble) {
-                            bubble.classList.add('message-jump-flash');
-                            setTimeout(() => bubble.classList.remove('message-jump-flash'), 1500);
-                        }
+            this.sessions = { ...this.sessions };
+            if (shouldScroll) this.$nextTick(() => this.scrollToBottom(id));
+        },
+
+        async setEditChat(id, type, name) {
+            this.editChatId = id;
+            this.editGroupName = name;
+        },
+
+        async sendChatMessage() {
+            if (!this.message.trim() || !this.activeChatId) return;
+
+            const text = this.message;
+            const id = this.activeChatId;
+            this.message = '';
+
+            await this.$wire.sendMessage(text);
+            
+            this.sessions[id].messages.push({ 
+                body: text, senderName: text, auth: 1, id: Date.now(),
+                time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+            });
+          
+            this.sessions = { ...this.sessions };
+            this.$nextTick(() => this.scrollToBottom(id));
+        },
+
+        async jumpToMessage(result) {
+            await this.setActiveChat(result.chatId, result.chatType, result.sender, false);
+            setTimeout(() => {
+                const textElement = document.getElementById(`msg-${result.id}`);
+                if (textElement) {
+                    textElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const bubble = textElement.closest('.msg-bubble');
+                    if (bubble) {
+                        bubble.classList.add('message-jump-flash');
+                        setTimeout(() => bubble.classList.remove('message-jump-flash'), 1500);
                     }
-                }, 300);
-            },
-            
-            async performSearch(query) {
-                if (query.length < 3) {
-                    this.allResults = []; this.results = []; this.activeResultIndex = -1; return;
                 }
-                const raw = await this.$wire.performSearch(query);
-                this.allResults = Array.isArray(raw) ? raw : Object.values(raw);
-                this.syncCurrentChatResults();
-            },
-            
-            async performUserSearch(userSearchQuery) {
-                if (userSearchQuery.length < 3) { this.allResults = []; return; }
-                const raw = await this.$wire.performUserSearch(userSearchQuery);
-                this.allResults = Array.isArray(raw) ? raw : Object.values(raw);
-            },
+            }, 300);
+        },
+        
+        async performSearch(query) {
+            if (query.length < 3) {
+                this.allResults = []; this.results = []; this.activeResultIndex = -1; return;
+            }
+            const raw = await this.$wire.performSearch(query);
+            this.allResults = Array.isArray(raw) ? raw : Object.values(raw);
+            this.syncCurrentChatResults();
+        },
+        
+        async performUserSearch(userSearchQuery) {
+            if (userSearchQuery.length < 3) { this.allResults = []; return; }
+            const raw = await this.$wire.performUserSearch(userSearchQuery);
+            this.allResults = Array.isArray(raw) ? raw : Object.values(raw);
+        },
 
-            syncCurrentChatResults() {
-                if (!this.activeChatId) { this.results = []; this.activeResultIndex = -1; return; }
-                this.results = this.allResults.filter(r => r.chatId == this.activeChatId);
-                this.activeResultIndex = this.results.length > 0 ? 0 : -1;
-            },
+        syncCurrentChatResults() {
+            if (!this.activeChatId) { this.results = []; this.activeResultIndex = -1; return; }
+            this.results = this.allResults.filter(r => r.chatId == this.activeChatId);
+            this.activeResultIndex = this.results.length > 0 ? 0 : -1;
+        },
 
-            getMatchCount(id) {
-                if (!this.searchQuery || this.searchQuery.length < 3) return 0;
-                return this.allResults.filter(r => r.chatId == id).length;
-            },
+        getMatchCount(id) {
+            if (!this.searchQuery || this.searchQuery.length < 3) return 0;
+            return this.allResults.filter(r => r.chatId == id).length;
+        },
 
-            async navigateResults(direction) {
-                if (this.results.length === 0) return;
-                if (direction === 'next') {
-                    this.activeResultIndex = (this.activeResultIndex + 1) % this.results.length;
-                } else {
-                    this.activeResultIndex = (this.activeResultIndex - 1 + this.results.length) % this.results.length;
+        async navigateResults(direction) {
+            if (this.results.length === 0) return;
+            if (direction === 'next') {
+                this.activeResultIndex = (this.activeResultIndex + 1) % this.results.length;
+            } else {
+                this.activeResultIndex = (this.activeResultIndex - 1 + this.results.length) % this.results.length;
+            }
+            await this.jumpToMessage(this.results[this.activeResultIndex]);
+        },
+
+        scrollToBottom(id) {
+            const panel = document.getElementById(`panel-${id}`);
+            if (panel) panel.scrollTop = panel.scrollHeight;
+        },
+        
+        init() {
+            const saved = localStorage.getItem('anychat_admin_sessions');
+            if (saved) {
+                try { this.sessions = JSON.parse(saved); } catch (e) { this.sessions = {}; }
+            }
+
+            const preloaded = @json(property_exists($this, 'preloadedChat') ?$this->preloadedChat : null);
+
+            if (preloaded) {
+                this.activeChatId = preloaded.id;
+
+                if (!this.sessions[preloaded.id]) {
+                    this.sessions[preloaded.id] = {
+                        metadata: { name: preloaded.name, id: preloaded.id, type: preloaded.type },
+                        messages: []
+                    };
                 }
-                await this.jumpToMessage(this.results[this.activeResultIndex]);
-            },
+                this.sessions[preloaded.id].messages = preloaded.messages;
 
-            scrollToBottom(id) {
-                const panel = document.getElementById(`panel-${id}`);
-                if (panel) panel.scrollTop = panel.scrollHeight;
-            },
-            
-          init() {
-    const saved = localStorage.getItem('anychat_admin_sessions');
-    if (saved) {
-        try { this.sessions = JSON.parse(saved); } catch (e) { this.sessions = {}; }
-    }
+                this.$nextTick(() => this.scrollToBottom(preloaded.id));
+            }
 
-    // Read the preloaded server data seamlessly parsed as a JS object
-    const preloaded = @json($this->preloadedChat);
-
-    if (preloaded) {
-        // 1. Set the active ID immediately to bypass the empty state
-        this.activeChatId = preloaded.id;
-
-        // 2. Hydrate the local session with server-rendered messages
-        if (!this.sessions[preloaded.id]) {
-            this.sessions[preloaded.id] = {
-                metadata: { name: preloaded.name, id: preloaded.id, type: preloaded.type },
-                messages: []
-            };
-        }
-        this.sessions[preloaded.id].messages = preloaded.messages;
-
-        // 3. Boot up the WebSocket listener for this preloaded chat
-       // this.bindEchoChannel(preloaded.id);
-        
-        // 4. Scroll to bottom
-        this.$nextTick(() => this.scrollToBottom(preloaded.id));
-    }
-
-    this.$watch('sessions', (val) => {
-        localStorage.setItem('anychat_admin_sessions', JSON.stringify(val));
-    }, { deep: true });
-},
-        }));
-
-        window.chatAdminRegistered = true;
-        
-        // Dispatch event to tell the outer DOM that the component is locked and loaded
-        window.dispatchEvent(new CustomEvent('chat-admin-ready'));
-    };
-
-    // Handle timing based on how the page was accessed
-    if (window.Alpine) {
-        // Navigated via wire:navigate: Execute instantly
-        registerChatAdmin();
-    } else {
-        // Hard refresh: Hook into Alpine's lifecycle BEFORE it evaluates the DOM
-        document.addEventListener('alpine:init', registerChatAdmin);
-    }
-})();
+            this.$watch('sessions', (val) => {
+                localStorage.setItem('anychat_admin_sessions', JSON.stringify(val));
+            }, { deep: true });
+        },
+    }));
 </script>
 @endscript

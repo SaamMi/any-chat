@@ -1,146 +1,150 @@
-  <x-layout :heading="__('Edit Group')" 
-          :subheading="__('Manage your group members')"
+<x-layout :heading="__('Edit Group')" 
+          :subheading="__('Manage your group members and roles')"
           :users="$users"
           :guest-conversations="$guestConversations"
           :group="$group">
 
-    <!-- Removed x-cloak, absolute positioning, z-index, and @click.away -->
-    <div class="flex flex-row w-full gap-6 p-6 bg-white rounded-xl border border-slate-200 overflow-visible">
+    <div class="my-6 flex flex-col lg:flex-row items-start gap-8 w-full">
+        
+        {{-- Left Column: Edit Form or Empty State --}}
+        <div class="flex-1 w-full min-w-0">
+            <template x-if="editChatId">
+                <form @submit.prevent="$wire.saveGroup(editChatId, editGroupName)" class="w-full space-y-6">
+                    
+                    <flux:input 
+                        x-model="editGroupName" 
+                        :label="__('Group name')" 
+                        type="text" 
+                        required 
+                    />
 
-                        <!-- LEFT COLUMN: Takes up all available remaining space (flex-1) -->
-                        <div class="flex-1 flex flex-col min-w-0">
+                    <flux:separator variant="subtle" />
+
+                    <div class="flex flex-row items-end gap-4 w-full">
+                        {{-- Search Box Container --}}
+                        <div x-data="{
+                                query: '',
+                                results: [],
+                                showDropdown: false,
+                                
+                                init() {
+                                    this.$watch('editChatId', () => {
+                                        this.query = '';
+                                        this.results = [];
+                                        this.showDropdown = false;
+                                    });
+                                },
+
+                                async performRowSearch() {
+                                    if (this.query.length < 2) {
+                                        this.results = [];
+                                        this.showDropdown = false;
+                                        return;
+                                    }
+                                    this.results = await $wire.searchAvailableTeamUsers(this.query, this.editChatId);
+                                    this.showDropdown = true;
+                                }
+                            }" 
+                            class="flex-1 relative"
+                            @click.away="showDropdown = false">
                             
-                            <!-- The Edit Form -->
-                            <template x-if="editChatId">
-                                <div class="w-full">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Edit group </label>
-                                        <button @click="editGroupModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
-                                    </div>
-
-                                    <div class="border-t border-slate-200 pt-4">
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Search users</label>
+                            <flux:input 
+                                :label="__('Search users')"
+                                type="search" 
+                                icon="magnifying-glass"
+                                x-model="query" 
+                                @input.debounce.300ms="performRowSearch"
+                                :placeholder="__('Type to search users...')" 
+                            />
+                            
+                            {{-- Search Dropdown --}}
+                            <div x-cloak
+                                 x-show="showDropdown && results && Object.values(results).length > 0" 
+                                 @wheel.stop
+                                 class="absolute top-full left-0 z-50 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-[280px] overflow-y-auto overscroll-contain divide-y divide-zinc-100 dark:divide-zinc-700/50">
+                                <template x-for="user in results" :key="user.id">
+                                    <div x-data="{ 
+                                             status: user.status, 
+                                             dbRole: user.role,
+                                             isDeleting: false 
+                                         }" 
+                                         x-show="!isDeleting"         
+                                         class="flex flex-row items-center justify-between gap-3 py-2.5 px-3 hover:bg-zinc-50 dark:hover:bg-zinc-700/50">   
                                         
-                                        <form @submit.prevent="$wire.saveGroup(editChatId,editGroupName)">
-                                            <div class="flex flex-row items-start gap-4 w-full">
-                                                <!-- Search Box Container -->
-                                                <div x-data="{
-                                                        query: '',
-                                                        results: [],
-                                                        showDropdown: false,
-                                                        
-                                                        init() {
-                                                            this.$watch('editChatId', () => {
-                                                                this.query = '';
-                                                                this.results = [];
-                                                                this.showDropdown = false;
-                                                            });
-                                                        },
-
-                                                        async performRowSearch() {
-                                                            if (this.query.length < 2) {
-                                                                this.results = [];
-                                                                this.showDropdown = false;
-                                                                return;
-                                                            }
-                                                            this.results = await $wire.searchAvailableTeamUsers(this.query, this.editChatId);
-                                                            this.showDropdown = true;
-                                                        }
-                                                    }" 
-                                                    class="flex-1 relative"
-                                                    @click.away="showDropdown = false">
-                                                    
-                                                    <input type="text" 
-                                                           x-model="query" 
-                                                           @input.debounce.300ms="performRowSearch"
-                                                           placeholder="Type to search users..." 
-                                                           class="block w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 h-[40px]">
-                                                    
-                                                    <!-- Search Dropdown -->
-                                                    <div x-cloak
-                                                         x-show="showDropdown && results" 
-                                                         @wheel.stop
-                                                         class="absolute top-full left-0 z-50 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-xl max-h-[280px] overflow-y-auto overscroll-contain">
-                                                        <template x-for="user in results" :key="user.id">
-                                                            <div x-data="{ 
-                                                                     status: user.status, 
-                                                                     dbRole: user.role,
-                                                                     isDeleting: false 
-                                                                 }" 
-                                                                 x-show="!isDeleting"         
-                                                                 class="flex flex-row items-center justify-between py-2.5 px-3 border-b border-slate-100 last:border-0 hover:bg-slate-50">   
-                                                                
-                                                                <label class="flex items-center gap-3 cursor-pointer flex-1"
-                                                                       :class="status === 'non-member' ? 'bg-white' : 'bg-slate-100'">
-                                                                    <input type="checkbox" 
-                                                                           :value="user.id" 
-                                                                           :checked="status === 'member'"
-                                                                           @change="
-                                                                               status = $event.target.checked ? 'member' : 'non-member';
-                                                                               $wire.toggleGroupUser(user.id, user.name, dbRole, status);
-                                                                           "
-                                                                           class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                                                                    <span x-text="user.name" class="font-medium text-sm text-slate-700"></span>
-                                                                </label>
-                                                                
-                                                                <select x-model="dbRole"
-                                                                        @change="$wire.updateGroupRole(user.id, user.name, dbRole)"
-                                                                        class="block w-28 rounded-md border-slate-300 py-1.5 pl-3 pr-8 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                                    @foreach ($this->availableRoles as $role)
-                                                                        <option value="{{ $role['value'] }}">{{ $role['label'] }}</option>
-                                                                    @endforeach
-                                                                </select>
-                                                                
-                                                                <span x-text="status" class="font-medium text-sm text-slate-700 w-24 text-center capitalize"></span>
-                                                                
-                                                                <span>   
-                                                                    <button type="button"
-                                                                            x-text="status === 'non-member' ? 'Add user' : 'Remove user'"
-                                                                            @click="
-                                                                                status = (status === 'member' ? 'non-member' : 'member');
-                                                                                $wire.toggleGroupUser(user.id, user.name, dbRole, status);
-                                                                            "   
-                                                                            class="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm">
-                                                                    </button> 
-                                                                </span>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Save Button -->
-                                                <button type="submit" 
-                                                        class="shrink-0 px-4 py-2 h-[40px] bg-indigo-600 text-white text-sm font-bold rounded-md hover:bg-indigo-700 shadow-sm">
-                                                    Save Users
-                                                </button>  
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <!-- Empty State -->
-                            <div x-show="!editChatId" class="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50 min-h-[250px] rounded-lg min-w-0">
-                                <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                                <p>Select a group to edit</p>
-                            </div>
-                        </div>
-
-                        <!-- RIGHT COLUMN: Pinned Sidebar (Fixed width, shrink-0 prevents compressing) -->
-                        <div class="w-[280px] shrink-0 border-l border-slate-200 pl-6 flex flex-col">   
-                            <div class="p-4 text-xs font-semibold text-slate-500 uppercase bg-slate-800/30 rounded-t-lg">Groups</div>
-                            <div class="overflow-y-auto max-h-[50vh] border border-t-0 border-slate-800/30 rounded-b-lg">
-                                @foreach($group as $gr)
-                                    <button @click="setEditChat('{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
-                                            :class="editChatId == '{{ $gr['id'] }}' ? 'bg-slate-800' : 'hover:bg-slate-800/50'"
-                                            class="w-full flex items-center justify-between p-4 transition-colors border-b border-slate-800 last:border-b-0">
+                                        <label class="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                                            <flux:checkbox 
+                                                ::value="user.id" 
+                                                ::checked="status === 'member'"
+                                                @change="
+                                                    status = $event.target.checked ? 'member' : 'non-member';
+                                                    $wire.toggleGroupUser(user.id, user.name, dbRole, status);
+                                                " 
+                                            />
+                                            <flux:text x-text="user.name" class="font-medium truncate" />
+                                        </label>
                                         
-                                        <div class="flex flex-col text-left">
-                                            <span class="font-bold text-sm text-zinc-400">{{ $gr['name'] }}</span>
+                                        <div class="w-32 shrink-0">
+                                            <flux:select size="sm" x-model="dbRole" @change="$wire.updateGroupRole(user.id, user.name, dbRole)">
+                                                @foreach ($this->availableRoles as $role)
+                                                    <flux:select.option value="{{ $role['value'] }}">
+                                                        {{ $role['label'] }}
+                                                    </flux:select.option>
+                                                @endforeach
+                                            </flux:select>
                                         </div>
-                                    </button>
-                                @endforeach
+                                        
+                                        <flux:badge 
+                                            size="sm" 
+                                            ::color="status === 'member' ? 'green' : 'zinc'" 
+                                            x-text="status" 
+                                            class="capitalize shrink-0" 
+                                        />
+                                        
+                                        <flux:button 
+                                            size="sm" 
+                                            variant="filled" 
+                                            type="button"
+                                            x-text="status === 'non-member' ? '{{ __('Add user') }}' : '{{ __('Remove user') }}'"
+                                            @click="
+                                                status = (status === 'member' ? 'non-member' : 'member');
+                                                $wire.toggleGroupUser(user.id, user.name, dbRole, status);
+                                            " 
+                                        />
+                                    </div>
+                                </template>
                             </div>
                         </div>
+
+                        {{-- Save Button --}}
+                        <flux:button variant="primary" type="submit">
+                            {{ __('Save users') }}
+                        </flux:button>
                     </div>
-</x-layout> 
+                </form>
+            </template>
+
+            {{-- Empty State --}}
+            <div x-show="!editChatId" x-cloak class="flex flex-col items-center justify-center min-h-[260px] rounded-xl border border-dashed border-zinc-200 dark:border-zinc-700 p-6 text-center">
+                <flux:icon.chat-bubble-left-ellipsis class="size-10 text-zinc-400 mb-3" />
+                <flux:heading size="sm">{{ __('No group selected') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Select a group from the list to manage its members.') }}</flux:text>
+            </div>
+        </div>
+
+        {{-- Right Column: Group Selector --}}
+        <div class="w-full lg:w-[240px] shrink-0 lg:border-l lg:border-zinc-200 dark:lg:border-zinc-700 lg:pl-6">
+            <flux:navlist>
+                <flux:navlist.group :heading="__('Groups')">
+                    @foreach($group as $gr)
+                        <flux:navlist.item 
+                            @click="setEditChat('{{ $gr['id'] }}', '{{ addslashes($gr['type']) }}', '{{ addslashes($gr['name']) }}')" 
+                            ::class="editChatId == '{{ $gr['id'] }}' ? 'bg-zinc-100 dark:bg-zinc-800 font-medium' : ''">
+                            {{ $gr['name'] }}
+                        </flux:navlist.item>
+                    @endforeach
+                </flux:navlist.group>
+            </flux:navlist>
+        </div>
+
+    </div>
+</x-layout>
